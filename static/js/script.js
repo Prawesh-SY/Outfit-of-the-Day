@@ -92,7 +92,7 @@ document.addEventListener("DOMContentLoaded", () => {
     showSlide(0);
 
     // Auto-rotate slides
-    const slideInterval = setInterval(() => {
+    let slideInterval = setInterval(() => {
       currentSlide = (currentSlide + 1) % slides.length;
       showSlide(currentSlide);
     }, 4000);
