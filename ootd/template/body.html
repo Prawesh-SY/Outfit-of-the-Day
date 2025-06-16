@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block title %}Body Type Calculator{% endblock %}
+{% block style %}
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      /* background: url('../../static/images/background.jpg') no-repeat center center fixed; */
+      background-size: cover;
+      /* display: flex; */
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      width: 300px;
+      text-align: center;
+      margin: 2rem auto;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    label {
+      display: block;
+      margin: 10px 0 5px;
+      color: #555;
+      text-align: left;
+    }
+
+    input {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    .calculate-btn {
+      background-color: #4CAF50;
+      margin-bottom: 10px;
+    }
+
+    .home-btn {
+      background-color: #2196F3;
+    }
+
+    #result {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+
+      <div id="header"></div>
+
+  <div class="container">
+    <h1>Body Type Calculator</h1>
+    <form id="bodyTypeForm" method="post" action="{% url 'body' %}">
+      {% csrf_token %}
+      <label for="bust">Bust (inches):</label>
+      <input type="number" id="bust" name="bust" required>
+
+      <label for="waist">Waist (inches):</label>
+      <input type="number" id="waist" name="waist" required>
+
+      <label for="hips">Hips (inches):</label>
+      <input type="number" id="hips" name="hips" required>
+
+      <button type="submit" class="calculate-btn">Calculate Body Type</button>
+    </form>
+
+    <!-- Back to Home Button -->
+    <a href="{% url 'home' %}">
+      <button type="button" class="home-btn">Back to Home</button>
+    </a>
+
+    <div id="result"></div>
+  </div>
+
+{% endblock %}
+
+{% block jscript %}
+  <!-- <script>
+      // Body Type Caculator
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('bodyTypeForm');
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const bust = parseFloat(document.getElementById('bust').value);
+        const waist = parseFloat(document.getElementById('waist').value);
+        const hips = parseFloat(document.getElementById('hips').value);
+
+        if (isNaN(bust) || isNaN(waist) || isNaN(hips)) {
+          alert('Please enter valid numbers.');
+          return;
+        }
+
+        const resultText = calculateBodyType(bust, waist, hips);
+        document.getElementById('result').textContent = `Your body type is: ${resultText}`;
+      });
+
+      function calculateBodyType(bust, waist, hips) {
+        if (bust > hips && bust > waist) return 'Inverted Triangle';
+        if (hips > bust && hips > waist) return 'Pear';
+        if (bust === hips && waist < bust) return 'Hourglass';
+        if (bust === waist && waist === hips) return 'Rectangle';
+        if (waist > bust && waist > hips) return 'Apple';
+        return 'Undefined';
+      }
+    });
+  </script> -->
+{% endblock %}
