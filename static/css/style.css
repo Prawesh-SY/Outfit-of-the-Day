@@ -8,13 +8,14 @@ body {
 
 /* Title Bar */
 header.title-bar {
-  background-color: #cd6155;
+  background-color: #CD5C5C;
   color: white;
   text-align: center;
   font-size: 2rem;
   font-weight: 700;
   padding: 1rem 0;
   user-select: none;
+  width: 100%;
 }
 
 /* Navigation Bar */
@@ -81,7 +82,7 @@ nav.nav-bar {
   position: absolute;
   top: 100%;
   right: 0;
-  background-color: #ff69b4;
+  background-color: #CD5C5C;
   border-radius: 5px;
   box-shadow: 0 4px 8px rgba(0,0,0,0.2);
   min-width: 150px;
@@ -236,7 +237,7 @@ nav.nav-bar {
 
 .section button {
   padding: 0.75rem 1.5rem;
-  background-color: #ff69b4;
+  background-color: #CD5C5C;
   color: white;
   border: none;
   border-radius: 5px;
@@ -245,12 +246,15 @@ nav.nav-bar {
   cursor: pointer;
   transition: all 0.3s;
   margin-top: 1rem;
+  text-decoration: none;
 }
 
 .section button:hover {
   background-color: #e55387;
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  text-decoration: none;
+  color: black;
 }
 
 /* Back to Top Button */
@@ -261,7 +265,7 @@ nav.nav-bar {
   right: 30px;
   width: 50px;
   height: 50px;
-  background-color: #cd6155;
+  background-color: #CD5C5C;
   color: white;
   border: none;
   border-radius: 50%;
@@ -274,6 +278,7 @@ nav.nav-bar {
 #backToTop:hover {
   background-color: #e55387;
   transform: translateY(-3px);
+  color: black;
 }
 
 #backToTop::before {
@@ -289,9 +294,9 @@ footer.title-bar {
   font-size: 1rem;
   margin-top: 2rem;
   text-align: center;
-  background-color: rgba(255, 182, 193, 0.9);
+  background-color: #CD5C5C;
   padding: 1.5rem 0;
-  color: #333;
+  color: white;
 }
 
 /* Animations */
