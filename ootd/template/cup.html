@@ -7,7 +7,7 @@
     body {
       font-family: Arial, sans-serif;
       /* background: url('../../static/images/background.jpg') no-repeat center center fixed; */
-      background-size: cover;
+    
       /* display: flex; */
       justify-content: center;
       align-items: center;
@@ -78,7 +78,7 @@
   <div id="header"></div>
 
   <div class="calculator-container">
-    <h1>Bra Size Calculator</h1>
+    <h1>Cup Size Calculator</h1>
     <form id="bra-size-form" method="post", action="{% url 'cup' %}">
       {% csrf_token %}
       <label for="underbust">Underbust Measurement (in inches):</label>
