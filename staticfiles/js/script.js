@@ -122,10 +122,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // BRA SIZE CALCULATOR
-  const braForm = document.getElementById("bra-size-form");
-  if (braForm) {
-    braForm.addEventListener("submit", function (event) {
+  // BRA SIZE CALCULATOR (Removed nested DOMContentLoaded)
+  const form = document.getElementById("bra-size-form");
+  if (form) {
+    form.addEventListener("submit", function (event) {
       event.preventDefault();
       const underbust = parseFloat(document.getElementById("underbust").value);
       const overbust = parseFloat(document.getElementById("overbust").value);
@@ -135,7 +135,8 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      const bandSize = Math.round(underbust);
+      const bandSize =
+        Math.floor(underbust) + (Math.floor(underbust) % 2 === 0 ? 2 : 1);
       const cupDifference = overbust - underbust;
       let cupSize = "";
 
@@ -150,9 +151,7 @@ document.addEventListener("DOMContentLoaded", () => {
       else cupSize = "H";
 
       const result = document.getElementById("result");
-      if (result) {
-        result.textContent = `Your bra size is ${bandSize}${cupSize}`;
-      }
+      result.textContent = `Your bra size is ${bandSize}${cupSize}`;
     });
   }
 
@@ -188,4 +187,4 @@ document.addEventListener("DOMContentLoaded", () => {
     if (waist > bust && waist > hips) return "Apple";
     return "Undefined";
   }
-});
+}); // Only one closing brace for the main DOMContentLoaded

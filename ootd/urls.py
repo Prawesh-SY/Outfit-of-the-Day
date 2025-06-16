@@ -31,5 +31,6 @@ urlpatterns = [
     path('login/', views.log_in, name='login'),
     path('logout/', views.log_out, name="logout"),
     path('profile/', views.profile, name="profile"),
+    path('closet/', views.closet, name="closet"),
     path('about/', views.about, name= "about"),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
