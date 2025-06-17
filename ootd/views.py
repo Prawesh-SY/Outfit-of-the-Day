@@ -205,8 +205,7 @@ def outfit(request):
             ('daily', 'sporty','red'): 7,
             ('daily', 'sporty','any'): 8,
             
-            key = (occasion, color, style)
-            score = compatibility_rules.get(key)
+
         }
     return render(request, 'outfit.html')
 
