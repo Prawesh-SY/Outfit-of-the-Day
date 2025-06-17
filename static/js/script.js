@@ -123,37 +123,48 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // BRA SIZE CALCULATOR (Removed nested DOMContentLoaded)
-  const form = document.getElementById("bra-size-form");
-  if (form) {
-    form.addEventListener("submit", function (event) {
-      event.preventDefault();
-      const underbust = parseFloat(document.getElementById("underbust").value);
-      const overbust = parseFloat(document.getElementById("overbust").value);
+ const form = document.getElementById("bra-size-form");
+if (form) {
+  form.addEventListener("submit", function (event) {
+    event.preventDefault();
 
-      if (isNaN(underbust) || isNaN(overbust)) {
-        alert("Please enter valid numbers for both measurements.");
-        return;
-      }
+    const underbust = parseFloat(document.getElementById("underbust").value);
+    const overbust = parseFloat(document.getElementById("overbust").value);
 
-      const bandSize =
-        Math.floor(underbust) + (Math.floor(underbust) % 2 === 0 ? 2 : 1);
-      const cupDifference = overbust - underbust;
-      let cupSize = "";
+    if (isNaN(underbust) || isNaN(overbust)) {
+      alert("Please enter valid numbers for both measurements.");
+      return;
+    }
 
-      if (cupDifference < 1) cupSize = "A";
-      else if (cupDifference < 2) cupSize = "B";
-      else if (cupDifference < 3) cupSize = "C";
-      else if (cupDifference < 4) cupSize = "D";
-      else if (cupDifference < 5) cupSize = "DD";
-      else if (cupDifference < 6) cupSize = "E";
-      else if (cupDifference < 7) cupSize = "F";
-      else if (cupDifference < 8) cupSize = "G";
-      else cupSize = "H";
+    // Limit values to a realistic range (e.g., 24–60 inches)
+    if (
+      underbust < 24 || underbust > 60 ||
+      overbust < 24 || overbust > 60
+    ) {
+      alert("Please enter values between 24 and 60 inches.");
+      return;
+    }
 
-      const result = document.getElementById("result");
-      result.textContent = `Your bra size is ${bandSize}${cupSize}`;
-    });
-  }
+    const bandSize =
+      Math.floor(underbust) + (Math.floor(underbust) % 2 === 0 ? 2 : 1);
+    const cupDifference = overbust - underbust;
+    let cupSize = "";
+
+    if (cupDifference < 1) cupSize = "A";
+    else if (cupDifference < 2) cupSize = "B";
+    else if (cupDifference < 3) cupSize = "C";
+    else if (cupDifference < 4) cupSize = "D";
+    else if (cupDifference < 5) cupSize = "DD";
+    else if (cupDifference < 6) cupSize = "E";
+    else if (cupDifference < 7) cupSize = "F";
+    else if (cupDifference < 8) cupSize = "G";
+    else cupSize = "H";
+
+    const result = document.getElementById("result");
+    result.textContent = `Your bra size is ${bandSize}${cupSize}`;
+  });
+}
+
 
   // BODY TYPE CALCULATOR
   const bodyForm = document.getElementById("bodyTypeForm");
