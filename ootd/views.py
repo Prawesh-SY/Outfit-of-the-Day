@@ -8,8 +8,9 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+import logging
 
-
+logger= logging.getLogger(__name__) # This creates a logger with your module's name
 
 
 
@@ -63,6 +64,11 @@ def sign_up(request):
     return render(request, 'signup.html')
 
 def outfit(request):
+    if request.method == 'POST':
+        style= request.POST.get('style')
+        color= request.POST.get('color')
+        occasion= request.POST.get('occasion')
+        logger.debug(f"Outfit:Form data - Style: {style}, Color:{color}, Occasion: {occasion}")
     return render(request, 'outfit.html')
 
 def cup(request):
