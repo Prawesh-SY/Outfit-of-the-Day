@@ -76,17 +76,134 @@ def outfit(request):
         compatibility_rules={
             # Format: (occasion, style, color): compatibility_score (1-10)
             # Occasion: Work
-            ('work', '',''): "Need scoring",
-            ('work', '',''): "Need scoring",
-            ('work', '',''): "Need scoring",
-            ('work', '',''): "Need scoring",
-            ('work', '',''): "Need scoring",
-            ('work', '',''): "Need scoring",
-            ('work', '',''): "Need scoring",
-            ('work', '',''): "Need scoring",
-            ('work', '',''): "Need scoring",
-            ('work', '',''): "Need scoring",
-            ('work', '',''): "Need scoring",
+            ('work', 'casual','black'): "Need scoring",
+            ('work', 'casual','white'): "Need scoring",
+            ('work', 'casual','red'): "Need scoring",
+            ('work', 'casual','any'): "Need scoring",
+            
+            ('work', 'formal','black'): "Need scoring",
+            ('work', 'formal','white'): "Need scoring",
+            ('work', 'formal','red'): "Need scoring",
+            ('work', 'formal','any'): "Need scoring",
+            
+            ('work', 'ethinc','black'): "Need scoring",
+            ('work', 'ethinc','white'): "Need scoring",
+            ('work', 'ethinc','red'): "Need scoring",
+            ('work', 'ethinc','any'): "Need scoring",
+            
+            ('work', 'party','black'): "Need scoring",
+            ('work', 'party','white'): "Need scoring",
+            ('work', 'party','red'): "Need scoring",
+            ('work', 'party','any'): "Need scoring",
+            
+            ('work', 'sporty','black'): "Need scoring",
+            ('work', 'sporty','white'): "Need scoring",
+            ('work', 'sporty','red'): "Need scoring",
+            ('work', 'sporty','any'): "Need scoring",
+            
+            # Occasion: Wedding
+            ('wedding', 'casual','black'): "Need scoring",
+            ('wedding', 'casual','white'): "Need scoring",
+            ('wedding', 'casual','red'): "Need scoring",
+            ('wedding', 'casual','any'): "Need scoring",
+            
+            ('wedding', 'formal','black'): "Need scoring",
+            ('wedding', 'formal','white'): "Need scoring",
+            ('wedding', 'formal','red'): "Need scoring",
+            ('wedding', 'formal','any'): "Need scoring",
+            
+            ('wedding', 'ethinc','black'): "Need scoring",
+            ('wedding', 'ethinc','white'): "Need scoring",
+            ('wedding', 'ethinc','red'): "Need scoring",
+            ('wedding', 'ethinc','any'): "Need scoring",
+            
+            ('wedding', 'party','black'): "Need scoring",
+            ('wedding', 'party','white'): "Need scoring",
+            ('wedding', 'party','red'): "Need scoring",
+            ('wedding', 'party','any'): "Need scoring",
+            
+            ('wedding', 'sporty','black'): "Need scoring",
+            ('wedding', 'sporty','white'): "Need scoring",
+            ('wedding', 'sporty','red'): "Need scoring",
+            ('wedding', 'sporty','any'): "Need scoring",
+            
+            # Occasion: Date
+            ('date', 'casual','black'): "Need scoring",
+            ('date', 'casual','white'): "Need scoring",
+            ('date', 'casual','red'): "Need scoring",
+            ('date', 'casual','any'): "Need scoring",
+            
+            ('date', 'formal','black'): "Need scoring",
+            ('date', 'formal','white'): "Need scoring",
+            ('date', 'formal','red'): "Need scoring",
+            ('date', 'formal','any'): "Need scoring",
+            
+            ('date', 'ethinc','black'): "Need scoring",
+            ('date', 'ethinc','white'): "Need scoring",
+            ('date', 'ethinc','red'): "Need scoring",
+            ('date', 'ethinc','any'): "Need scoring",
+            
+            ('date', 'party','black'): "Need scoring",
+            ('date', 'party','white'): "Need scoring",
+            ('date', 'party','red'): "Need scoring",
+            ('date', 'party','any'): "Need scoring",
+            
+            ('date', 'sporty','black'): "Need scoring",
+            ('date', 'sporty','white'): "Need scoring",
+            ('date', 'sporty','red'): "Need scoring",
+            ('date', 'sporty','any'): "Need scoring",
+            
+            # Occasion: Vacation
+            ('vacation', 'casual','black'): "Need scoring",
+            ('vacation', 'casual','white'): "Need scoring",
+            ('vacation', 'casual','red'): "Need scoring",
+            ('vacation', 'casual','any'): "Need scoring",
+            
+            ('vacation', 'formal','black'): "Need scoring",
+            ('vacation', 'formal','white'): "Need scoring",
+            ('vacation', 'formal','red'): "Need scoring",
+            ('vacation', 'formal','any'): "Need scoring",
+            
+            ('vacation', 'ethinc','black'): "Need scoring",
+            ('vacation', 'ethinc','white'): "Need scoring",
+            ('vacation', 'ethinc','red'): "Need scoring",
+            ('vacation', 'ethinc','any'): "Need scoring",
+            
+            ('vacation', 'party','black'): "Need scoring",
+            ('vacation', 'party','white'): "Need scoring",
+            ('vacation', 'party','red'): "Need scoring",
+            ('vacation', 'party','any'): "Need scoring",
+            
+            ('vacation', 'sporty','black'): "Need scoring",
+            ('vacation', 'sporty','white'): "Need scoring",
+            ('vacation', 'sporty','red'): "Need scoring",
+            ('vacation', 'sporty','any'): "Need scoring",
+            
+            # Occasion: Daily
+            ('daily', 'casual','black'): "Need scoring",
+            ('daily', 'casual','white'): "Need scoring",
+            ('daily', 'casual','red'): "Need scoring",
+            ('daily', 'casual','any'): "Need scoring",
+            
+            ('daily', 'formal','black'): "Need scoring",
+            ('daily', 'formal','white'): "Need scoring",
+            ('daily', 'formal','red'): "Need scoring",
+            ('daily', 'formal','any'): "Need scoring",
+            
+            ('daily', 'ethinc','black'): "Need scoring",
+            ('daily', 'ethinc','white'): "Need scoring",
+            ('daily', 'ethinc','red'): "Need scoring",
+            ('daily', 'ethinc','any'): "Need scoring",
+            
+            ('daily', 'party','black'): "Need scoring",
+            ('daily', 'party','white'): "Need scoring",
+            ('daily', 'party','red'): "Need scoring",
+            ('daily', 'party','any'): "Need scoring",
+            
+            ('daily', 'sporty','black'): "Need scoring",
+            ('daily', 'sporty','white'): "Need scoring",
+            ('daily', 'sporty','red'): "Need scoring",
+            ('daily', 'sporty','any'): "Need scoring",
             
         }
     return render(request, 'outfit.html')
