@@ -301,8 +301,6 @@ def outfit(request):
             ('daily', 'sporty','red'): 7,
             ('daily', 'sporty','any'): 8,
             
-
-        }
             ('daily', 'sporty','black'): 10,
             ('daily', 'sporty','white'): 5,
             ('daily', 'sporty','red'): 7,

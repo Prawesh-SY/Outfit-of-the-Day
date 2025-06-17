@@ -64,4 +64,5 @@ class BraSize(models.Model):
         difference = self.overbust - self.underbust
         cup_sizes = ['AA', 'A', 'B', 'C', 'D', 'DD', 'E', 'F', 'G', 'H']
         index = min(max(0, int(difference - 1)), len(cup_sizes) - 1)
-        self.cup_size = cup_sizes[index]
+        self.cup_size = cup_sizes[index] 
+        
