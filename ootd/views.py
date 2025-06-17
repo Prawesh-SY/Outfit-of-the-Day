@@ -64,11 +64,31 @@ def sign_up(request):
     return render(request, 'signup.html')
 
 def outfit(request):
+    logger.info("This is a test info message")
+    logger.debug("This is a test debug message")
     if request.method == 'POST':
         style= request.POST.get('style')
         color= request.POST.get('color')
         occasion= request.POST.get('occasion')
-        logger.debug(f"Outfit:Form data - Style: {style}, Color:{color}, Occasion: {occasion}")
+        logger.debug(f"Outfit: Form data - Style: {style}, Color: {color}, Occasion: {occasion}")
+        
+        # Define compatibility rules
+        compatibility_rules={
+            # Format: (occasion, style, color): compatibility_score (1-10)
+            # Occasion: Work
+            ('work', '',''): "Need scoring",
+            ('work', '',''): "Need scoring",
+            ('work', '',''): "Need scoring",
+            ('work', '',''): "Need scoring",
+            ('work', '',''): "Need scoring",
+            ('work', '',''): "Need scoring",
+            ('work', '',''): "Need scoring",
+            ('work', '',''): "Need scoring",
+            ('work', '',''): "Need scoring",
+            ('work', '',''): "Need scoring",
+            ('work', '',''): "Need scoring",
+            
+        }
     return render(request, 'outfit.html')
 
 def cup(request):
