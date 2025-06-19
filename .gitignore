@@ -4,7 +4,7 @@ __pycache__/
 *.pyc
 .env
 .env.local
-
+.log
 # Virtual Environment
 myenv/
 venv/
