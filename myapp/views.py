@@ -186,35 +186,47 @@ def toggle_favorite(request, outfit_id):    # Integrated with model
         logger.error(f"Error in toggle_favorite: {str(e)}")
         return JsonResponse({'status': 'error', 'message': 'Outfit not found'}, status=404)
 
-
-
-
-
-
 def cup(request):
+    logger.info("Cup invoked")
+
     if request.method == "POST":
+        is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
+        logger.info("Method Post")
         try:
-            underbust = float(request.POST.get('underbust'))
-            overbust = float(request.POST.get('overbust'))
-            
-            # Validate measurements
-            if not (20 <= underbust <= 60) or not (20 <= overbust <= 80):
-                messages.error(request, "Invalid measurements. Underbust (20-60), Overbust (20-80)")
-                return render(request, 'myapp/cup.html', {
-                    'underbust': underbust,
-                    'overbust': overbust
-                })
-            
-            # Calculate bra size
+            underbust = float(request.POST.get('underbust') or request.body.decode().split(':')[1].split(',')[0])  # Handle both form and JSON
+            overbust = float(request.POST.get('overbust') or request.body.decode().split(':')[2].split('}')[0])
+
+            logger.info(f'Request received: underbust:{underbust}, overbust: {overbust}')
+
+            if not (24 <= underbust <= 60) or not (24 <= overbust <= 80):
+                error_msg = "Invalid measurements. Underbust (24-60), Overbust (24-80)"
+                if is_ajax:
+                    return JsonResponse({'error': error_msg}, status=400)
+                messages.error(request, error_msg)
+                return render(request, 'myapp/cup.html', {'underbust': underbust, 'overbust': overbust})
+            # Calculate size
             bra_size = BraSize(underbust=underbust, overbust=overbust)
             bra_size.calculate_size()
             
             if request.user.is_authenticated:
-                # Save for logged-in users
-                bra_size.user = request.user
-                bra_size.save()
+                bra_size, created = BraSize.objects.update_or_create(
+                    user=request.user,
+                    defaults={'underbust': underbust, 'overbust': overbust}
+                )
+            else:
+                messages.info(request, "Sign in to save your measurements")
+
+            if is_ajax:
+                return JsonResponse({
+                    'band_size': bra_size.band_size,
+                    'cup_size': bra_size.cup_size,
+                    'underbust': underbust,
+                    'overbust': overbust
+                })
+
+            if request.user.is_authenticated:
                 messages.success(request, "Bra size saved successfully!")
-            
+
             return render(request, 'myapp/cup.html', {
                 'band_size': bra_size.band_size,
                 'cup_size': bra_size.get_cup_size_display(),
@@ -222,26 +234,36 @@ def cup(request):
                 'overbust': overbust,
                 'saved': request.user.is_authenticated
             })
-            
+
         except ValueError:
+            logger.warning("Invalid input: could not convert to float.")
+            if is_ajax:
+                return JsonResponse({'error': "Please enter valid numbers"}, status=400)
             messages.error(request, "Please enter valid numbers")
+
         except Exception as e:
             logger.error(f"Error in bra size calculation: {str(e)}")
+            if is_ajax:
+                return JsonResponse({'error': "An error occurred during calculation"}, status=500)
             messages.error(request, "An error occurred during calculation")
-    
-    # For GET requests or if there's an error
+
+    # Handle GET or failed POST
     bra_data = None
     if request.user.is_authenticated:
-        try:
-            bra_data = request.user.bra_size
-        except BraSize.DoesNotExist:
-            pass
-            
+        bra_sizes = BraSize.objects.filter(user=request.user).order_by('-last_updated')
+        if bra_sizes.exists():
+            bra_data = bra_sizes.first()
+
     return render(request, 'myapp/cup.html', {
         'bra_data': bra_data,
         'underbust': request.POST.get('underbust', ''),
         'overbust': request.POST.get('overbust', '')
     })
+
+@login_required
+def bra_size_history(request): # Create: url, and html
+    sizes = BraSize.objects.filter(user=request.user).order_by('-last_updated')
+    return render(request, 'myapp/bra_history.html', {'sizes': sizes})
 
 def body(request):  # Integrated with model
     if request.method == "POST":

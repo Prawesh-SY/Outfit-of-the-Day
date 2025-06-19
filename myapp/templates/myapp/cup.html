@@ -6,9 +6,6 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      /* background: url('../../static/images/background.jpg') no-repeat center center fixed; */
-    
-      /* display: flex; */
       justify-content: center;
       align-items: center;
       height: 100vh;
@@ -66,22 +63,21 @@
       background-color: #2196F3;
     }
 
+    .bra-types {
+    text-align: center;
+    margin-top: 30px;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #333;
+    line-height: 1.6;
 
-.bra-types {
-  text-align: center;
-  margin-top: 30px;
-  padding: 15px;
-  border-radius: 8px;
-  font-size: 14px;
-  color: #333;
-  line-height: 1.6;
+    }
 
-}
-
-.bra-types h2 {
-  font-size: 22px;
-  margin-bottom: 10px;
-}
+    .bra-types h2 {
+    font-size: 22px;
+    margin-bottom: 10px;
+    }
 
 
 
@@ -122,26 +118,40 @@
 {% block content %}
   <div class="calculator-container">
     <h1>Cup Size Calculator</h1>
-    <form id="bra-size-form" method="post" 
-    data-csrf-token="{{ csrf_token }}"
-    data-calculation-url="{% url 'cup' %}"
-    {% if request.user.is_authenticated %}data-authenticated="true"{% endif %}>
+    {% if messages %}
+        <div class="alert-messages">
+            {% for message in messages %}
+                <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    <form id="bra-size-form" method="POST" data-csrf-token="{{ csrf_token }}" data-authenticated="{{ user.is_authenticated|yesno:'true,false' }}" data-calculation-url="{% url 'cup' %}">
+
         {% csrf_token %}
+        <div id="braSizeResultContainer" style="margin-top: 1em;">
+            <p>Band Size: <strong id="bandSizeResult"></strong></p>
+            <p>Cup Size: <strong id="cupSizeResult"></strong></p>
+          </div>
+          
         <label for="underbust">Underbust Measurement (in inches):</label>
         <input type="number" id="underbust" name="underbust" 
-               min="20" max="60" step="0.1"
+               min="24" max="60" step="0.1"
                value="{{ underbust|default_if_none:'' }}" required>
 
         <label for="overbust">Overbust Measurement (in inches):</label>
         <input type="number" id="overbust" name="overbust" 
-               min="20" max="80" step="0.1"
+               min="24" max="80" step="0.1"
                value="{{ overbust|default_if_none:'' }}" required>
 
         <button type="submit" class="calculate-btn">Calculate</button>
     </form>
 
+    <div id="result"></div>
     <!-- Display results -->
     {% if bra_data %}
+    
     <div class="result-box">
         <h3>Your Saved Bra Size</h3>
         <p>Underbust: {{ bra_data.underbust }} inches</p>
@@ -186,6 +196,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultDiv = document.getElementById('result');
     const braDataElement = document.getElementById('bra-data');
 
+    const bandResult = document.querySelector("#bandSizeResult");
+    const cupResult = document.querySelector("#cupSizeResult");
+
     // Extract configuration from data attributes
     const config = {
         csrfToken: form.dataset.csrfToken,
@@ -198,6 +211,14 @@ document.addEventListener('DOMContentLoaded', function() {
             cupSize: braDataElement.dataset.cupSize
         } : null
     };
+
+    if (bandResult && cupResult && config.braData) {
+        bandResult.textContent = config.braData.bandSize;
+        cupResult.textContent = config.braData.cupSize;
+      } else {
+        console.warn("Result elements not found in DOM or no saved bra data");
+      }
+      
 
     // Show saved data if available
     if (config.braData) {
@@ -218,11 +239,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (!validateInputs(underbust, overbust)) return;
 
-        if (config.isAuthenticated) {
-            form.submit(); // Traditional submit for logged-in users
-        } else {
-            calculateBraSize(underbust, overbust); // AJAX for guests
-        }
+        calculateBraSize(underbust, overbust);
     });
 
     // Input validation

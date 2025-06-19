@@ -152,17 +152,17 @@ class BraSize(models.Model):
         ('G', 'G'), ('H', 'H'), ('I', 'I'), ('J', 'J')
     ]
     
-    user = models.OneToOneField(
+    user = models.ForeignKey(
         'User',
         on_delete=models.CASCADE,
         related_name='bra_size'
     )
     underbust = models.FloatField(
-        validators=[MinValueValidator(20), MaxValueValidator(60)],
+        validators=[MinValueValidator(24), MaxValueValidator(60)],
         help_text="Measurement in inches"
     )
     overbust = models.FloatField(
-        validators=[MinValueValidator(20), MaxValueValidator(80)],
+        validators=[MinValueValidator(24), MaxValueValidator(80)],
         help_text="Measurement in inches"
     )
     band_size = models.PositiveSmallIntegerField(
@@ -202,7 +202,7 @@ class BraSize(models.Model):
         self.cup_size = cup_mapping.get(difference, 'D')  # Default to D if out of range
 
     def __str__(self):
-        return f"{self.user.get_full_name()}'s bra size: {self.band_size}{self.cup_size}"
+        return f"{self.user.first_name if self.user else "Guest"}'s bra size: {self.band_size}{self.cup_size} (Updated: {self.last_updated})"
 
 class OutfitImage(models.Model):
     class Meta:
