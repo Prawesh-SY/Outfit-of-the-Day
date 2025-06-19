@@ -207,8 +207,8 @@ class BraSize(models.Model):
 class OutfitImage(models.Model):
     class Meta:
         indexes = [
-            models.Index(fields=['style']),
-            models.Index(fields=['color']),
+            models.Index(fields=['style', 'color']),
+            models.Index(fields=['occasions']),
         ]
     def image_upload_path(instance, filename):
         return os.path.join('outfits', filename)

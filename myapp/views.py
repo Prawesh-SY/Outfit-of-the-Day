@@ -15,6 +15,7 @@ from django.views.decorators.http import require_http_methods, require_POST
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth import get_user_model
+from django.db.models import Q
 User = get_user_model()
 
 logger= logging.getLogger(__name__) # This creates a logger with your module's name
@@ -111,8 +112,8 @@ def outfit(request):    # Integrated with model
             
             # Get recommended outfit from the database with image URLs
             recommended_outfits = OutfitImage.objects.filter(
+                Q(color= color) | Q(color= "any"),
                 style= style,
-                color= color,
                 occasions__contains= occasion
             ).order_by('-created_at')[:4] # Get 4 most recent
             
