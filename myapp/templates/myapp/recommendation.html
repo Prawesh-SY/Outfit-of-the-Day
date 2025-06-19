@@ -4,7 +4,10 @@
 {% block title %}OOTD Match Result{% endblock %}
 
 {% block style %}
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+  crossorigin="anonymous" 
+  referrerpolicy="no-referrer"
+  >
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -150,6 +153,25 @@
       padding: 2rem;
       color: #666;
     }
+
+    .favorite-btn.favorited {
+      background-color: #28a745;
+    }
+  
+    .heart-icon {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-family: 'Font Awesome 6 free';
+        font-weight: 400;
+      }
+    
+    .heart-icon.favorited {
+        color: red;
+      }
+    
+    .heart-icon.fas {
+        font-weight: 900;
+      }
   </style>
 {% endblock %}
 
@@ -171,15 +193,19 @@
         {% endif %}
         
         <div class="fav-wrapper">
-          <button class="btn-fav" onclick="toggleFavorite(this, '{{ main_outfit.title }}')">Add to Favorites</button>
-          <i class="far fa-heart heart-icon" onclick="toggleFavorite(this, '{{ main_outfit.title }}')"></i>
-        </div>
+          <button class="favorite-btn btn-fav {% if main_outfit.is_favorite %}favorited{% endif %}" 
+                  data-outfit-id="{{ main_outfit.id }}">
+              {% if main_outfit.is_favorite %}Added to Favorites{% else %}Add to Favorites{% endif %}
+          </button>
+          <i class="heart-icon {% if main_outfit.is_favorite %}fa-solid{% else %}fa-regular{% endif %} fa-heart" 
+             data-outfit-id="{{ main_outfit.id }}"></i>
+      </div>
       {% endwith %}
     </div>
 
     <h2>Similar Outfits</h2>
     <div class="similar-container">
-      {% for outfit in outfits_data %}
+      {% for outfit in outfits_data|slice:"1:" %}
         <div class="similar-card">
           {% if outfit.image_url %}
             <img src="{{ outfit.image_url }}" alt="{{ outfit.title }}">
@@ -189,9 +215,13 @@
           <h3>{{ outfit.title }}</h3>
           <p>{{ outfit.description|truncatechars:60 }}</p>
           <div class="fav-wrapper">
-            <button class="btn-fav" onclick="toggleFavorite(this, '{{ outfit.title }}')">Add to Favorites</button>
-            <i class="far fa-heart heart-icon" onclick="toggleFavorite(this, '{{ outfit.title }}')"></i>
-          </div>
+            <button class="favorite-btn btn-fav {% if outfit.is_favorite %}favorited{% endif %}" 
+                    data-outfit-id="{{ outfit.id }}">
+                {% if outfit.is_favorite %}Added to Favorites{% else %}Add to Favorites{% endif %}
+            </button>
+            <i class="heart-icon {% if outfit.is_favorite %}fa-regular{% else %}fa-solid{% endif %} fa-heart" 
+             data-outfit-id="{{ outfit.id }}"></i>
+        </div>
         </div>
       {% endfor %}
     </div>
@@ -207,49 +237,52 @@
 
 {% block jscript %}
 <script>
-  function toggleFavorite(element, outfitTitle) {
-    const isHeart = element.classList.contains('heart-icon');
-    const wrapper = element.closest('.fav-wrapper');
-    const heart = wrapper.querySelector('.heart-icon');
-    const button = wrapper.querySelector('.btn-fav');
-
-    const isFavorited = heart.classList.toggle('favorited');
-
-    // Toggle heart icon style
-    heart.classList.toggle('fas', isFavorited);
-    heart.classList.toggle('far', !isFavorited);
-
-    // Toggle button state
-    button.classList.toggle('favorited', isFavorited);
-    button.textContent = isFavorited ? 'Added to Favorites' : 'Add to Favorites';
-
-    // Here you would typically make an AJAX call to save the favorite
-    console.log(`Outfit "${outfitTitle}" ${isFavorited ? 'added to' : 'removed from'} favorites`);
+  document.addEventListener('click', function(e) {
+  
+    const favBtn = e.target.matches('.favorite-btn') ? e.target : 
+                  e.target.matches('.heart-icon') ? e.target : 
+                  e.target.closest('.favorite-btn, .heart-icon');
     
-    // Example AJAX call (you would need to implement the endpoint):
-    /*
-    fetch('/api/favorites/', {
-      method: isFavorited ? 'POST' : 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': '{{ csrf_token }}'
-      },
-      body: JSON.stringify({
-        outfit_title: outfitTitle
-      })
+    if (!favBtn || !favBtn.dataset.outfitId) {
+        return; // Skip if not a favorite button or missing ID
+    }
+    
+    const outfitId = favBtn.dataset.outfitId;
+    const csrftoken = document.querySelector('#csrf-form [name=csrfmiddlewaretoken]').value;
+    
+    fetch(`/favorites/toggle/${outfitId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrftoken,
+        },
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+    })
     .then(data => {
-      if (!data.success) {
-        // Revert the UI if the request failed
-        heart.classList.toggle('favorited');
-        heart.classList.toggle('fas');
-        heart.classList.toggle('far');
-        button.classList.toggle('favorited');
-        button.textContent = isFavorited ? 'Add to Favorites' : 'Added to Favorites';
-      }
+        // Update both button and icon in the wrapper
+        const wrapper = favBtn.closest('.fav-wrapper');
+        if (wrapper) {
+            const heartIcon = wrapper.querySelector('.heart-icon');
+            const textBtn = wrapper.querySelector('.favorite-btn');
+            
+            if (heartIcon) {
+                heartIcon.classList.toggle('favorited');
+                heartIcon.classList.toggle('fas');
+                heartIcon.classList.toggle('far');
+            }
+            if (textBtn) {
+                textBtn.classList.toggle('favorited');
+                textBtn.textContent = textBtn.classList.contains('favorited') 
+                    ? 'Added to Favorites' 
+                    : 'Add to Favorites';
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
     });
-    */
-  }
-</script>
+});
+  </script>
 {% endblock %}

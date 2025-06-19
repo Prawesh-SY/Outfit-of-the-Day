@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta name="csrf-token" content="{{ csrf_token }}">
+    {% comment %} <meta name="csrf-token" content="{{ csrf_token }}"> {% endcomment %}
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{% block title %}OOTD{% endblock %}</title>
@@ -16,6 +16,8 @@
     {% block style %}{% endblock %}
   </head>
   <body>
+    <form id="csrf-form" style="display:none;">{% csrf_token %}</form>
+
     <header class="title-bar">OUTFIT OF THE DAY</header>
 
     <nav class="nav-bar">

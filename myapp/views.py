@@ -91,6 +91,7 @@ def log_out(request):   # Integrated with model
 def outfit(request):    # Integrated with model
     logger.info("Outfit recommendation view accessed")
     if request.method == 'POST':
+        logger.info('POST method requested')
         style= request.POST.get('style')
         color= request.POST.get('color')
         occasion= request.POST.get('occasion')
@@ -111,13 +112,24 @@ def outfit(request):    # Integrated with model
                 return render(request, 'myapp/outfit.html')
             
             # Get recommended outfit from the database with image URLs
-            recommended_outfits = OutfitImage.objects.filter(
-                Q(color= color) | Q(color= "any"),
+            # First get exact matches
+            exact_matches= OutfitImage.objects.filter(
+                color= color,
                 style= style,
                 occasions__contains= occasion
-            ).order_by('-created_at')[:4] # Get 4 most recent
-            
+            ).order_by('-created_at')
+            other_matches= OutfitImage.objects.filter(
+                ~Q(color= color),   #Exclude exact matches
+                style= style,
+                occasions__contains= occasion
+            ).order_by('-created_at')
+            recommended_outfits = list(exact_matches[:5]) # Get 4 most recent
+            if len(recommended_outfits) < 5:
+                remaining = 5 - len(recommended_outfits)
+                recommended_outfits.extend(other_matches[:remaining])
+            logger. info('List of recommended outfits prepared')
             # Check which outfits are favorited by the user (if authenticated)
+            logger.info('Ready to set Favorite outfits')
             favorite_outfit_ids = set()
             if request.user.is_authenticated:
                 favorite_outfit_ids = set(
@@ -165,9 +177,11 @@ def favorite_outfits(request):  # Integrated with model
     favorites = FavoriteOutfit.objects.filter(user=request.user).select_related('outfit')
     return render(request, 'myapp/favorites.html', {'favorites': favorites})
 
-@login_required
 @require_POST
 def toggle_favorite(request, outfit_id):    # Integrated with model
+    if not request.user.is_authenticated:
+        logger.debug("The user has not logged in")
+        return JsonResponse({'status':'error', 'message': 'Login required'}, status= 403)
     try:
         logger.debug(f"Raw POST data: {request.POST}"
                      )
