@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}About Us - OOTD{% endblock %}
+
+{% block style %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+<style>
+  /* Back to Top button */
+  #backToTop {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    right: 50%;
+    transform: translateX(50%);
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    background-color: #CD5C5C; /* deep purple */
+    color: white;
+    border-radius: 50%;
+    border: none;
+    outline: none;
+  }
+  #backToTop::before {
+    content: "";
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 10px solid white;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+
+
+  /* Highlight mark style */
+  mark {
+    background-color: #f5b7b1 ; 
+    color: #380326; 
+    font-family: cursive;
+    font-size: 16px;
+    padding: 0 5px;
+  }
+
+  /* Body and container */
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    /* background-image: url('static/images/background.jpg'); */
+    background-size: cover;
+    background-position: center;
+  }
+
+  .vertical-box {
+    background-color: rgba(255, 240, 245, 0.95); /* very light pink */
+    max-width: 800px;
+    min-height: 900px;
+    margin: 20px auto;
+    padding: 30px 40px;
+    box-shadow: 0 0 15px #CD5C5C;
+    border-radius: 10px;
+  }
+
+  /* Quote images */
+  .quote-image1 {
+    float: left;
+    width: 50px;
+    margin-right: 15px;
+  }
+  .quote-image2 {
+    float: right;
+    width: 50px;
+    margin-left: 15px;
+  }
+
+  /* Quote text */
+  .quote-text {
+    font-family: cursive;
+    font-size: 20px;
+    line-height: 1.5;
+    color: #000000; /* dark purple */
+    overflow: hidden; /* to clear floats */
+  }
+
+  /* Conclusion section */
+  .conclusion {
+    background-color: #CD5C5C; /* rose purple */
+    color: #fbe7f3; /* soft pink */
+    padding: 40px 20px;
+    margin-top: 60px;
+    border-radius: 10px;
+    text-align: center;
+  }
+
+  .conclusion p {
+    font-size: 18px;
+    margin-bottom: 1rem;
+  }
+
+  .conclusion a {
+    display: inline-block;
+    margin-top: 20px;
+    text-decoration: none;
+    background-color: #CD5C5C; /* rose pink */
+    color: white;
+    padding: 12px 30px;
+    font-weight: bold;
+    border-radius: 5px;
+    border: 2px solid black;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  .conclusion a:hover {
+    background-color: #f5b7b1;
+    color: black;
+  }
+</style>
+{% endblock style %}
+
+{% block content %}
+  <!-- Main content -->
+  <div class="vertical-box">
+    <h2 align="center" style="color:#000000;">About OOTD</h2>
+
+    <p><mark><b>Created and Designed by Siddhi.</b></mark></p>
+
+    <p><mark>OOTD is your trusted fashion recommendation platform that helps you discover stylish outfits tailored for every occasion.</mark></p>
+
+    <p><mark>We combine the latest trends with your unique preferences to curate perfect looks that make you feel confident and comfortable.</mark></p>
+
+    <p><mark><b>OOTD celebrates your style, every day!</b></mark></p>
+
+    <img src="{% static 'images/sid.png' %}" alt="Fashion Model" width="370" height="400" style="display:block; margin: 20px auto;"/>
+
+    <div>
+      <img src="{% static 'images/comma2.png' %}" alt="Opening Quote" class="quote-image1" />
+      <p class="quote-text">
+        ‘‘At OOTD, we believe fashion is a form of self-expression. Our goal is to inspire and empower you to own your look with confidence and creativity. From casual days to special events, we have the perfect outfit waiting for you.’’
+      </p>
+      <img src="{% static 'images/comma1.png' %}" alt="Closing Quote" class="quote-image2" />
+    </div>
+
+    <div class="conclusion">
+      <p>
+        Join us as we redefine fashion recommendations, making style accessible, fun, and personalized for everyone. Your best look starts here!
+      </p>
+      <p style="font-weight: bold;">– Siddhi <span style="font-size: 1.2rem;">&#128526;</span></p>
+      <a href="{% url 'home' %}" aria-label="Back to Home">Back to Home</a>
+    </div>
+  </div>
+
+  <!-- Footer main -->
+
+
+
+
+  <!-- Back to top button -->
+  <button id="backToTop" aria-label="Back to Top"></button>
+{% endblock content %}
+
+{% block jscript %}
+<!-- No JS needed here - everything is in script.js -->
+{% endblock jscript %}
+  
