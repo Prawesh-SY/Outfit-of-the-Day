@@ -197,8 +197,9 @@
                   data-outfit-id="{{ main_outfit.id }}">
               {% if main_outfit.is_favorite %}Added to Favorites{% else %}Add to Favorites{% endif %}
           </button>
-          <i class="heart-icon {% if main_outfit.is_favorite %}fa-solid{% else %}fa-regular{% endif %} fa-heart" 
-             data-outfit-id="{{ main_outfit.id }}"></i>
+          {% comment %} <i class="heart-icon {% if main_outfit.is_favorite %}fa-solid{% else %}fa-regular{% endif %} fa-heart" 
+             data-outfit-id="{{ main_outfit.id }}"></i> {% endcomment %}
+             
       </div>
       {% endwith %}
     </div>
