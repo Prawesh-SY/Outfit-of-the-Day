@@ -216,7 +216,6 @@ class OutfitImage(models.Model):
     image = models.ImageField(upload_to=image_upload_path)
     title = models.CharField(max_length=100)
     description = models.TextField(blank=True)
-    
     style = models.CharField(max_length=20, choices=STYLE_CHOICES)
     color = models.CharField(max_length=20, choices=COLOR_CHOICES)
     

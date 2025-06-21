@@ -143,39 +143,28 @@ LOGIN_URL = 'login'
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {name} {message}',
-            'style': '{',
-        },
-        'simple': {
-            'format': '{levelname} {message}',
-            'style': '{',
-        },
-    },
-
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
         },
     },
-
     'root': {
         'handlers': ['console'],
-        'level': 'INFO',
+        'level': 'DEBUG',  # Change to DEBUG to see all messages
     },
-
     'loggers': {
-        'myapp': {  'myapp'
+        'django': {
             'handlers': ['console'],
-            'level': 'DEBUG',
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'myapp': {  # Replace with your app name
+            'handlers': ['console'],
+            'level': 'DEBUG',  # Set to DEBUG to see all messages
             'propagate': False,
         },
     },
 }
-
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

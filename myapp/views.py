@@ -95,7 +95,7 @@ def outfit(request):    # Integrated with model
         style= request.POST.get('style')
         color= request.POST.get('color')
         occasion= request.POST.get('occasion')
-        logger.debug(f"Outfit: Form data - Style: {style}, Color: {color}, Occasion: {occasion}")
+        logger.info(f"Outfit: Form data - Style: {style}, Color: {color}, Occasion: {occasion}")
         
         # Validate inputs
         if not all([style, color, occasion]):
@@ -106,6 +106,7 @@ def outfit(request):    # Integrated with model
         try:
             outfit_image = OutfitImage()
             score = outfit_image.get_compatibility_score(occasion, style, color)
+            logger.debug(f"Calcuated compatibility score: {score}")
             
             if score is None:
                 messages.warning(request, "Could not determine compatibility for this combination")
@@ -118,51 +119,117 @@ def outfit(request):    # Integrated with model
                 style= style,
                 occasions__contains= occasion
             ).order_by('-created_at')
+            logger.debug(f"Found {exact_matches.count()} exact matches")
+            
+            # Get the simialr matches
             other_matches= OutfitImage.objects.filter(
                 ~Q(color= color),   #Exclude exact matches
                 style= style,
                 occasions__contains= occasion
             ).order_by('-created_at')
-            recommended_outfits = list(exact_matches[:5]) # Get 4 most recent
-            if len(recommended_outfits) < 5:
-                remaining = 5 - len(recommended_outfits)
-                recommended_outfits.extend(other_matches[:remaining])
-            logger. info('List of recommended outfits prepared')
-            # Check which outfits are favorited by the user (if authenticated)
+            logger.debug(f"Found {other_matches.count()} other matches")
+        # Experimental codes for generating recommended_outfits starts:
+            recommended_outfits = list(exact_matches[:1])   #Get 5 exact matches
+            similar_outfits = list(other_matches[:4])   # Get 5 similar matches
+            logger.debug(f"Selected {len(recommended_outfits)} exact outfits and {len(similar_outfits)} similar outfits")
+        # Experimental codes ends
+            
+        # Original codes for generating recommended_outfits starts:
+            # recommended_outfits = list(exact_matches[:5]) # Get 4 most recent
+            # if len(recommended_outfits) < 5:
+            #     remaining = 5 - len(recommended_outfits)
+            #     recommended_outfits.extend(other_matches[:remaining])
+            # logger. info('List of recommended outfits prepared')
+            # # Check which outfits are favorited by the user (if authenticated)
+        # Original codes ends
+            
             logger.info('Ready to set Favorite outfits')
             favorite_outfit_ids = set()
             if request.user.is_authenticated:
+                outfit_ids = [o.id for o in recommended_outfits] + [o.id for o in similar_outfits]
                 favorite_outfit_ids = set(
                     FavoriteOutfit.objects.filter(
                         user= request.user,
-                        outfit__in= recommended_outfits).values_list('outfit_id', flat= True)
+                        outfit_id__in= outfit_ids).values_list('outfit_id', flat= True)
                     )
-                
+             
+        # Experimental outfit data preparation
+            # Process recommended_outfits data
+            exact_outfits_data = [{
+                'id' : outfit.id,
+                'title' : outfit.title,
+                'description' : outfit.description,
+                'style' : outfit.get_style_display(),
+                'color' : outfit.get_color_display(),                
+                'occasions' : outfit.get_occasion_list(),
+                'image_url' : outfit.image.url if outfit.image else None,
+                'created_at' : outfit.created_at,
+                'is_favorite' : outfit.id in favorite_outfit_ids,
+            } for outfit in recommended_outfits]
             
-            # Prepare outfit data with image URLs
-            outfits_data = []
-            for outfit in recommended_outfits:
-                is_favorite = outfit.id in favorite_outfit_ids
-                outfits_data.append({
-                    'id': outfit.id,
-                    'title': outfit.title,
-                    'description': outfit.description,
-                    'style': outfit.get_style_display(),
-                    'color': outfit.get_color_display(),
-                    'image_url': outfit.image.url if outfit.image else None,
-                    'occasions': outfit.get_occasion_list(),
-                    'created_at': outfit.created_at,
-                    'is_favorite': is_favorite,
-                })
+            # Process similar_outfits data 
+            similar_outfits_data = [{
+                'id' : outfit.id,
+                'title' : outfit.title,
+                'description' : outfit.description,
+                'style' : outfit.get_style_display(),
+                'color' : outfit.get_color_display(),                
+                'occasions' : outfit.get_occasion_list(),
+                'image_url' : outfit.image.url if outfit.image else None,
+                'created_at' : outfit.created_at,
+                'is_favorite' : outfit.id in favorite_outfit_ids,
+                } for outfit in similar_outfits]
+        # Experimental outfit data preparation ends
                 
+        # Original outfit data preparation
+            # Prepare outfit data with image URLs
+            # outfits_data = []
+            # for outfit in recommended_outfits:
+            #     is_favorite = outfit.id in favorite_outfit_ids
+            #     outfits_data.append({
+            #         'id': outfit.id,
+            #         'title': outfit.title,
+            #         'description': outfit.description,
+            #         'style': outfit.get_style_display(),
+            #         'color': outfit.get_color_display(),
+            #         'image_url': outfit.image.url if outfit.image else None,
+            #         'occasions': outfit.get_occasion_list(),
+            #         'created_at': outfit.created_at,
+            #         'is_favorite': is_favorite,
+            #     })
+        # Original oufit data preparation ends
             context = {
                 'style': style,
                 'color': color,
                 'occasion': occasion,
                 'score': score,
-                'outfits_data': outfits_data,
+                'exact_outfits_data': exact_outfits_data,
+                'similar_outfits_data': similar_outfits_data,
                 'media_url': settings.MEDIA_URL,  # Important for serving media files
             }
+            # Debugging
+            logger.debug(f"""
+            === DEBUG OUTPUT ===
+           Input Parameters:
+           
+           Database Query Resutls:
+            Exact matches found: {len(exact_outfits_data)}
+            
+            Similar matches found: {len(similar_outfits_data)}
+            
+           Media URL : 
+           
+           context = 
+                style: {context['style']}
+                color: {context['color']}
+                occasion: {context['occasion']}
+                score: {context['score']}
+                exact_outfits_data: 
+                    {[(o['id'],
+                    o['image_url']) for o in context['exact_outfits_data']] }
+                similar_outfits_data:
+                    {[(o['id'] , o['image_url']) for o in context['similar_outfits_data']]}
+                         """)
             return render(request, 'myapp/recommendation.html', context)
         
         except Exception as e:

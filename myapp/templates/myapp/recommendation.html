@@ -182,10 +182,10 @@
     <div class="score-badge">Compatibility Score: {{ score }}/10</div>
   </div>
 
-  {% if outfits_data %}
+  {% if exact_outfits_data %}
     <!-- Main recommended outfit (first one) -->
     <div class="main-recommendation">
-      {% with outfits_data|first as main_outfit %}
+      {% with exact_outfits_data|first as main_outfit %}
         {% if main_outfit.image_url %}
           <img src="{{ main_outfit.image_url }}" alt="{{ main_outfit.title }}" class="main-image">
         {% else %}
@@ -197,16 +197,24 @@
                   data-outfit-id="{{ main_outfit.id }}">
               {% if main_outfit.is_favorite %}Added to Favorites{% else %}Add to Favorites{% endif %}
           </button>
-          {% comment %} <i class="heart-icon {% if main_outfit.is_favorite %}fa-solid{% else %}fa-regular{% endif %} fa-heart" 
-             data-outfit-id="{{ main_outfit.id }}"></i> {% endcomment %}
+          <i class="heart-icon {% if main_outfit.is_favorite %}fa-solid{% else %}fa-regular{% endif %} fa-heart" 
+             data-outfit-id="{{ main_outfit.id }}"></i>
              
       </div>
       {% endwith %}
+
+      {% else %}
+    <div class="no-results">
+      <h2>No outfits found matching your criteria</h2>
+      <p>Try adjusting your style, color, or occasion preferences</p>
+    </div>
+      {% endif %}
     </div>
 
+    {% if similar_outfits_data %}
     <h2>Similar Outfits</h2>
     <div class="similar-container">
-      {% for outfit in outfits_data|slice:"1:" %}
+      {% for outfit in similar_outfits_data %}
         <div class="similar-card">
           {% if outfit.image_url %}
             <img src="{{ outfit.image_url }}" alt="{{ outfit.title }}">
@@ -226,11 +234,7 @@
         </div>
       {% endfor %}
     </div>
-  {% else %}
-    <div class="no-results">
-      <h2>No outfits found matching your criteria</h2>
-      <p>Try adjusting your style, color, or occasion preferences</p>
-    </div>
+  
   {% endif %}
 
   <a href="{% url 'outfit' %}" class="btn">Try Different Combination</a>
