@@ -297,6 +297,8 @@ footer.title-bar {
   background-color: #CD5C5C;
   padding: 1.5rem 0;
   color: white;
+  position: bottom;
+  
 }
 
 /* Animations */
