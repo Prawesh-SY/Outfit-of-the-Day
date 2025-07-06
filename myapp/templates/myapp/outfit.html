@@ -111,46 +111,49 @@
     color: inherit;
     display: block;
   }
+  input[type="text"],
+  input[type="color"],
+  select,
+  button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    box-sizing: border-box;
+  }
+
+  input[type="color"] {
+    height: 45px; /* Optional: make it visually consistent with other inputs */
+    padding: 0 10px;
+  }
+
 </style>
 {% endblock style %} {% block content %}
 <div class="style-container">
   <h1>Style Me Now!</h1>
+    {% if messages %}
+      {% for message in messages %}
+        <div class= "alert alert-{{message.tags}}">{{message}}</div>
+      {% endfor %}
+    {% endif %}
   <form id="styleForm" method="post" action="{% url 'outfit' %}">
     {% csrf_token %}
-
+  
     <label for="occasion">Occasion:</label>
-    <select id="occasion" name="occasion" required>
-      <option value="">-- Select Occasion --</option>
-      <option value="work">Work</option>
-      <option value="wedding">Wedding</option>
-      <option value="date">Date</option>
-      <option value="vacation">Vacation</option>
-      <option value="daily">Daily Wear</option>
-      <option value="daily">Farewell</option>
-    </select>
-
-    <label for="style">Select Style:</label>
-    <select id="style" name="style" required>
-      <option value="">-- Select Style --</option>
-      <option value="casual">Casual</option>
-      <option value="formal">Formal</option>
-      <option value="ethnic">Ethnic</option>
-      <option value="party">Party</option>
-      <option value="sporty">Sporty</option>
-    </select>
-
+    <input type="text" id="occasion" name="occasion" placeholder="e.g., Work, Wedding, Date" required />
+  
+    <label for="style">Style:</label>
+    <input type="text" id="style" name="style" placeholder="e.g., Casual, Formal, Ethnic" required />
+  
     <label for="color">Preferred Color:</label>
-    <select id="color" name="color" required>
-      <option value="">-- Select Color --</option>
-      <option value="black">Black</option>
-      <option value="white">White</option>
-      <option value="red">Red</option>
-      <option value="any">Any</option>
-    </select>
-
+    <input type="color" id="color" name="color" value="#000000" />
+  
     <button type="submit">Get Recommendations</button>
     <a href="{% url 'home' %}" class="home-btn-link">Back to Home</a>
   </form>
+  
 
   <div class="recommendations" id="recommendations"></div>
 </div>

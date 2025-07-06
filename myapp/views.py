@@ -4,7 +4,8 @@ from django.http import HttpResponse, JsonResponse
 
 # for sign_up, log_in, and log_out
 # from django.contrib.auth.models import User
-from .models import Outfit, OutfitImage, FavoriteOutfit, BodyMeasurement, BraSize
+from .models import Outfit, OutfitImage, FavoriteOutfit, BodyMeasurement, BraSize, CompatibilityRules, Color
+
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
@@ -98,50 +99,44 @@ def outfit(request):    # Integrated with model
         logger.info(f"Outfit: Form data - Style: {style}, Color: {color}, Occasion: {occasion}")
         
         # Validate inputs
-        if not all([style, color, occasion]):
+        if not all([style, occasion]):
             messages.error(request, "Please fill all the fields")
             return render(request, 'myapp/outfit.html')
        
-        # Temporary OutfitImage instance to calculate compatibility
+        # Get or create compatibility rule with fallbacks
         try:
-            outfit_image = OutfitImage()
-            score = outfit_image.get_compatibility_score(occasion, style, color)
-            logger.debug(f"Calcuated compatibility score: {score}")
+            rule = CompatibilityRules.get_or_create_rule(occasion, style, color)
+            score = rule.score
+            logger.debug(f"Retrieved compatibility score: {score}")
             
-            if score is None:
-                messages.warning(request, "Could not determine compatibility for this combination")
-                return render(request, 'myapp/outfit.html')
+            # Get the model instances for database queries
+            style_obj= rule.style
+            color_obj= rule.color
+            occasion_obj= rule.occasion
             
             # Get recommended outfit from the database with image URLs
             # First get exact matches
             exact_matches= OutfitImage.objects.filter(
-                color= color,
-                style= style,
-                occasions__contains= occasion
+                color= color_obj,
+                style= style_obj,
+                occasions= occasion_obj
             ).order_by('-created_at')
+            color_instance = Color.objects.get(hex_code=color)
+            color_name = color_instance.name
+            logger.debug(f"Color name: {color_name}")
             logger.debug(f"Found {exact_matches.count()} exact matches")
             
             # Get the simialr matches
             other_matches= OutfitImage.objects.filter(
-                ~Q(color= color),   #Exclude exact matches
-                style= style,
-                occasions__contains= occasion
-            ).order_by('-created_at')
+                style= style_obj,
+                occasions= occasion_obj
+            ).exclude(color=color_obj).order_by('-created_at')
             logger.debug(f"Found {other_matches.count()} other matches")
-        # Experimental codes for generating recommended_outfits starts:
+
             recommended_outfits = list(exact_matches[:1])   #Get 5 exact matches
             similar_outfits = list(other_matches[:4])   # Get 5 similar matches
             logger.debug(f"Selected {len(recommended_outfits)} exact outfits and {len(similar_outfits)} similar outfits")
-        # Experimental codes ends
-            
-        # Original codes for generating recommended_outfits starts:
-            # recommended_outfits = list(exact_matches[:5]) # Get 4 most recent
-            # if len(recommended_outfits) < 5:
-            #     remaining = 5 - len(recommended_outfits)
-            #     recommended_outfits.extend(other_matches[:remaining])
-            # logger. info('List of recommended outfits prepared')
-            # # Check which outfits are favorited by the user (if authenticated)
-        # Original codes ends
+
             
             logger.info('Ready to set Favorite outfits')
             favorite_outfit_ids = set()
@@ -153,15 +148,15 @@ def outfit(request):    # Integrated with model
                         outfit_id__in= outfit_ids).values_list('outfit_id', flat= True)
                     )
              
-        # Experimental outfit data preparation
+
             # Process recommended_outfits data
             exact_outfits_data = [{
                 'id' : outfit.id,
                 'title' : outfit.title,
                 'description' : outfit.description,
-                'style' : outfit.get_style_display(),
-                'color' : outfit.get_color_display(),                
-                'occasions' : outfit.get_occasion_list(),
+                'style' : outfit.style.name,
+                'color' : outfit.color.name,                
+                'occasions' : occasion,
                 'image_url' : outfit.image.url if outfit.image else None,
                 'created_at' : outfit.created_at,
                 'is_favorite' : outfit.id in favorite_outfit_ids,
@@ -172,32 +167,14 @@ def outfit(request):    # Integrated with model
                 'id' : outfit.id,
                 'title' : outfit.title,
                 'description' : outfit.description,
-                'style' : outfit.get_style_display(),
-                'color' : outfit.get_color_display(),                
-                'occasions' : outfit.get_occasion_list(),
+                'style' : outfit.style.name,
+                'color' : outfit.color.name,                
+                'occasions' : occasion,
                 'image_url' : outfit.image.url if outfit.image else None,
                 'created_at' : outfit.created_at,
                 'is_favorite' : outfit.id in favorite_outfit_ids,
                 } for outfit in similar_outfits]
-        # Experimental outfit data preparation ends
-                
-        # Original outfit data preparation
-            # Prepare outfit data with image URLs
-            # outfits_data = []
-            # for outfit in recommended_outfits:
-            #     is_favorite = outfit.id in favorite_outfit_ids
-            #     outfits_data.append({
-            #         'id': outfit.id,
-            #         'title': outfit.title,
-            #         'description': outfit.description,
-            #         'style': outfit.get_style_display(),
-            #         'color': outfit.get_color_display(),
-            #         'image_url': outfit.image.url if outfit.image else None,
-            #         'occasions': outfit.get_occasion_list(),
-            #         'created_at': outfit.created_at,
-            #         'is_favorite': is_favorite,
-            #     })
-        # Original oufit data preparation ends
+        
             context = {
                 'style': style,
                 'color': color,
@@ -206,11 +183,13 @@ def outfit(request):    # Integrated with model
                 'exact_outfits_data': exact_outfits_data,
                 'similar_outfits_data': similar_outfits_data,
                 'media_url': settings.MEDIA_URL,  # Important for serving media files
+                'rule_id': rule.id # Add rule ID for rating form
             }
             # Debugging
             logger.debug(f"""
             === DEBUG OUTPUT ===
-           Input Parameters:
+           Input Parameters:  Style={style}, Color={color}, Occasion={occasion}
+           Compatibility Score: {score}
            
            Database Query Resutls:
             Exact matches found: {len(exact_outfits_data)}
@@ -233,7 +212,7 @@ def outfit(request):    # Integrated with model
             return render(request, 'myapp/recommendation.html', context)
         
         except Exception as e:
-            logger.error(f"Error in outfit recommendation: {str(e)}")
+            logger.error(f"Error in outfit recommendation: {str(e)}", exc_info= True)
             messages.error(request, "An error occured while processing your request")
             return render(request, 'myapp/outfit.html')
         
@@ -392,6 +371,14 @@ def body(request):  # Integrated with model
     body_data = None
     if request.user.is_authenticated and hasattr(request.user, 'bodymeasurement'):
         body_data = request.user.bodymeasurement
+        logger.debug(f"""
+                ===  DEBUG CONSOLE ===
+                Body shape: {body_data.body_type}
+                Bust: {body_data.bust}
+                Waist: {body_data.waist}
+                Hips: {body_data.hips}
+                     
+                    """ )
     
     return render(request, 'myapp/body.html', {'body_data': body_data})
 

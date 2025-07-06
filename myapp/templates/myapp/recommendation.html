@@ -172,6 +172,76 @@
     .heart-icon.fas {
         font-weight: 900;
       }
+
+      /* Add new styles for rating section */
+      .rating-section {
+        background-color: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin: 2rem auto;
+        max-width: 600px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        text-align: center;
+      }
+      
+      .rating-title {
+        font-size: 1.4rem;
+        margin-bottom: 0.5rem;
+        color: #333;
+      }
+      
+      .current-rating {
+        font-size: 1.1rem;
+        margin-bottom: 1.2rem;
+        color: #666;
+      }
+      
+      .star-rating {
+        direction: rtl; /* Reverse order for star hover effect */
+        unicode-bidi: bidi-override;
+        font-size: 2em;
+        margin-bottom: 1.5rem;
+      }
+      
+      .star-rating input {
+        display: none;
+      }
+      
+      .star-rating label {
+        color: #ddd;
+        cursor: pointer;
+        display: inline-block;
+        margin: 0 3px;
+      }
+      
+      .star-rating label:hover,
+      .star-rating label:hover ~ label,
+      .star-rating input:checked ~ label {
+        color: gold;
+      }
+      
+      .rating-btn {
+        padding: 0.7rem 1.5rem;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: background-color 0.3s;
+      }
+      
+      .rating-btn:hover {
+        background-color: #3d8b40;
+      }
+      
+      .rating-thanks {
+        margin-top: 1rem;
+        color: #4CAF50;
+        font-weight: bold;
+        display: none;
+      }
+  
   </style>
 {% endblock %}
 
@@ -179,7 +249,7 @@
   <div class="header">
     <h1>Outfit Recommendation</h1>
     <p>For <strong>{{ occasion }}</strong> occasion in <strong>{{ color }}</strong> {{ style }} style</p>
-    <div class="score-badge">Compatibility Score: {{ score }}/10</div>
+    <div class="score-badge">Compatibility Score: {{ score|floatformat:1 }}/10</div>
   </div>
 
   {% if exact_outfits_data %}
@@ -200,8 +270,32 @@
           <i class="heart-icon {% if main_outfit.is_favorite %}fa-solid{% else %}fa-regular{% endif %} fa-heart" 
              data-outfit-id="{{ main_outfit.id }}"></i>
              
+        {% endwith %}
       </div>
-      {% endwith %}
+        <!-- Rating Section -->
+        <div class="rating-section">
+          <h3 class="rating-title">Rate this combination</h3>
+          <p class="current-rating">
+            Current score: {{ score|floatformat:1 }}/10 
+            (based on {{ rule.vote_count }} vote{{ rule.vote_count|pluralize }})
+          </p>
+          
+          <form method="post" action="{% url 'rate_outfit' %}" id="rating-form">
+            {% csrf_token %}
+            <input type="hidden" name="rule_id" value="{{ rule_id }}">
+            
+            <div class="star-rating">
+              {% for i in "12345678910" reversed %}
+                <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}">
+                <label for="star{{ i }}">★</label>
+              {% endfor %}
+            </div>
+            
+            <button type="submit" class="rating-btn">Submit Rating</button>
+          </form>
+          
+          <p class="rating-thanks" id="rating-thanks">Thank you for your rating!</p>
+        </div>
 
       {% else %}
     <div class="no-results">
@@ -244,7 +338,6 @@
 {% block jscript %}
 <script>
   document.addEventListener('click', function(e) {
-  
     const favBtn = e.target.matches('.favorite-btn') ? e.target : 
                   e.target.matches('.heart-icon') ? e.target : 
                   e.target.closest('.favorite-btn, .heart-icon');
@@ -275,8 +368,8 @@
             
             if (heartIcon) {
                 heartIcon.classList.toggle('favorited');
-                heartIcon.classList.toggle('fas');
-                heartIcon.classList.toggle('far');
+                heartIcon.classList.toggle('fa-solid');
+                heartIcon.classList.toggle('fa-regular');
             }
             if (textBtn) {
                 textBtn.classList.toggle('favorited');
@@ -290,5 +383,67 @@
         console.error('Error:', error);
     });
 });
+// Add AJAX submission for rating form
+const ratingForm = document.getElementById('rating-form');
+if (ratingForm) {
+ratingForm.addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  const form = e.target;
+  const formData = new FormData(form);
+  const submitBtn = form.querySelector('button[type="submit"]');
+  const thanksMsg = document.getElementById('rating-thanks');
+  
+  // Disable button during submission
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Submitting...';
+  
+  fetch(form.action, {
+      method: 'POST',
+      body: formData,
+      headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+      },
+  })
+  .then(response => {
+      if (!response.ok) throw new Error('Network response was not ok');
+      return response.json();
+  })
+  .then(data => {
+      if (data.success) {
+          // Show thank you message
+          thanksMsg.style.display = 'block';
+          
+          // Update displayed score
+          const scoreBadge = document.querySelector('.score-badge');
+          if (scoreBadge) {
+              scoreBadge.textContent = `Compatibility Score: ${data.new_score.toFixed(1)}/10`;
+          }
+          
+          // Update vote count
+          const currentRating = document.querySelector('.current-rating');
+          if (currentRating) {
+              const voteText = data.vote_count === 1 ? 'vote' : 'votes';
+              currentRating.textContent = 
+                  `Current score: ${data.new_score.toFixed(1)}/10 (based on ${data.vote_count} ${voteText})`;
+          }
+          
+          // Reset form after 2 seconds
+          setTimeout(() => {
+              form.reset();
+              submitBtn.disabled = false;
+              submitBtn.textContent = 'Submit Rating';
+              thanksMsg.style.display = 'none';
+          }, 2000);
+      }
+  })
+  .catch(error => {
+      console.error('Error:', error);
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit Rating';
+      alert('Failed to submit rating. Please try again.');
+  });
+});
+}
   </script>
 {% endblock %}

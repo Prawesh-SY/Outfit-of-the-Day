@@ -66,7 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Close menus with Escape key
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
-      if (userDropdown) {
+      if (userDropdown?.classList.contains("show")) {
         userDropdown.classList.remove("show");
         userContainer.setAttribute("aria-expanded", "false");
       }

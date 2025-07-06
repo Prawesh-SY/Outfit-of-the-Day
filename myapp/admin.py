@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import User, BodyMeasurement, BraSize, OutfitImage, ClothingItem, Outfit, FavoriteOutfit
+from .models import User, BodyMeasurement, BraSize, Title,Occasion, Style, Color, Accessories, Footwear, OutfitImage, ClothingItem, Outfit, FavoriteOutfit, CompatibilityRules
 
 class CustomUserAdmin(UserAdmin):
     # Remove username from fieldsets and add your custom fields
@@ -28,7 +28,16 @@ class CustomUserAdmin(UserAdmin):
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(BodyMeasurement)
 admin.site.register(BraSize)
+admin.site.register(Title)
+admin.site.register(Occasion)
+admin.site.register(Style)
+admin.site.register(Color)
+admin.site.register(Accessories)
+admin.site.register(Footwear)
 admin.site.register(OutfitImage)
 admin.site.register(ClothingItem)
 admin.site.register(Outfit)
 admin.site.register(FavoriteOutfit)
+admin.site.register(CompatibilityRules)
+
+

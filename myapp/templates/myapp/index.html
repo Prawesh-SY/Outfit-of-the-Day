@@ -4,63 +4,71 @@
 {% block title %}OOTD{% endblock %}
 
 {% block style %}
-<link rel="stylesheet" href="{% static 'myapp/css/style.css' %}" />
+<link rel="stylesheet" href="{% static 'myapp/css/combined.css' %}" />
 {% endblock %}
 
 {% block content %}
-<!-- Image Slider -->
-    <div class="slider" id="slider">
-      <div class="slide active">
-        <img src="{% static 'myapp/images/5.jpg' %}" alt="slide 1">
-      </div>
-      <div class="slide">
-        <img src="{% static 'myapp/images/6.jpg' %}" alt="slide 2">
-      </div>
-      <div class="slide">
-        <img src="{% static 'myapp/images/7.png' %}" alt="slide 3">
-      </div>
-    </div>
 
-    <!-- Sections -->
-    <div class="line-container">
-      <div class="line"></div>
-      <span class="line-text">Today's Look</span>
-      <div class="line"></div>
-    </div>
-    <div class="section">
-      <a href="{% url 'outfit' %}"><img src="{% static 'myapp/images/2.png' %}" alt="Today's Look" />
-      <button style="text-decoration: none"></a>
-        <a href="{% url 'outfit' %}">Style Me Now!</a>
-      </button>
-    </div>
+  <!-- Tools Section -->
+  <section class="tools-row">
 
-    <div class="line-container">
-      <div class="line"></div>
-      <span class="line-text">Know Your Cup Size</span>
-      <div class="line"></div>
-    </div>
-    <div class="section">
-      <img src="{% static 'myapp/images/3.png' %}" alt="Cup Size" />
-      <button style="text-decoration: none">
-        <a href="{% url 'cup' %}">Try Now! </a>
-      </button>
-    </div>
+    <div class="tool-box">
+      <h3>Know Your Cup Size</h3>
+      <img src="{% static 'myapp/images/3.png' %}" alt="Cup Size Calculator">
+      <a href="{% url 'cup' %}" class="btn-link">Try Now!</a>
 
-    <div class="line-container">
-      <div class="line"></div>
-      <span class="line-text">Know Your Body Type</span>
-      <div class="line"></div>
     </div>
-    <div class="section">
-      <img src="{% static 'myapp/images/4.png' %}" alt="Body Type" />
-      <button style="text-decoration: none">
-        <a href="{% url 'body' %}">Try Now!</a>
-      </button>
+  
+      <div class="tool-box">
+      <h3>Try Now</h3>
+      <img src="{% static 'myapp/images/outfit.png' %}" alt="Style Me Now">
+      <a href="{% url 'cup' %}" class="btn-link">Style Me Now!</a>
     </div>
+  
+    <div class="tool-box">
+      <h3>Know Your Body Type</h3>
+      <img src="{% static 'myapp/images/4.png' %}" alt="Body Type Calculator">
+      <a href= "{% url "body" %}"
+      <button>Try Now!</button>
+      </a>
+    </div>
+  </section>
+  
+   <!-- Category Boxes -->
+  <section class="fit-categories">
+    <div class="fit-box" onclick="location.href='summer.html'">
+      <img src="{% static 'myapp/images/summer.png' %}" alt="Summer Fits">
+      <span>Summer Fits</span>
+    </div>
+    <div class="fit-box" onclick="location.href='winter.html'">
+      <img src="{% static 'myapp/images/winter.jpg' %}" alt="Winter Fits">
+      <span>Winter Fits</span>
+    </div>
+    <div class="fit-box" onclick="location.href='spring.html'">
+      <img src="{% static 'myapp/images/spring.jpg' %}" alt="Spring Fits">
+      <span>Spring Fits</span>
+    </div>
+    <div class="fit-box" onclick="location.href='beach.html'">
+      <img src="{% static 'myapp/images/beach.jpg' %}" alt="Beach Vacation">
+      <span>Beach Vacation</span>
+    </div>
+    <div class="fit-box" onclick="location.href='modest.html'">
+      <img src="{% static 'myapp/images/modest.jpeg' %}" alt="Modest Wears">
+      <span>Modest Fits</span>
+    </div>
+    <div class="fit-box" onclick="location.href='party.html'">
+      <img src="{% static 'myapp/images/party.jpeg' %}" alt="Party Looks">
+      <span>Party Fits</span>
+    </div>
+  </section>
+  
+  
+  
+  
+  <button id="backToTop" aria-label="Back to Top"></button>
 
-    <button id="backToTop" aria-label="Back to Top"></button>
   {% endblock %}
 
   {% block jscript %}
-    {# No JS needed here - everything is in sript.js #}  
+  
   {% endblock %}

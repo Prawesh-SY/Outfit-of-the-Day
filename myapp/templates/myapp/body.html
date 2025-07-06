@@ -132,10 +132,10 @@
   {% if body_data %}
   <div class="result-box">
     <h3>Your Body Type Results</h3>
-    <p>Bust: {{ body_data.bust }} inches</p>
-    <p>Waist: {{ body_data.waist }} inches</p>
-    <p>Hips: {{ body_data.hips }} inches</p>
-    <p>Body Type: <span class="body-type">{{ body_data.get_body_type_display }}</span></p>
+    <p>Bust: {{ body_data.bust|floatformat:1 }} inches</p>
+    <p>Waist: {{ body_data.waist|floatformat:1 }} inches</p>
+    <p>Hips: {{ body_data.hips|floatformat:1 }} inches</p>
+    <p>Body Type: <span class="body-type">{{ body_data.body_type|title }}</span></p>
   </div>
   {% endif %}
 
