@@ -195,29 +195,41 @@ class Occasion(models.Model):
     titles= models.ManyToManyField(Title, related_name= 'occasions', blank= True)
     description = models.TextField(blank= True)
     
+    def save(self, *args, **kwargs):
+        if self.name:
+            self.name = self.name.lower()
+        super().save(self, *args, **kwargs)
+    
     def __str__(self):
-        return self.name
+        return self.name.title()
     
 class Style(models.Model):
     name = models.CharField(max_length=20, unique= True)
     titles= models.ManyToManyField(Title, related_name= 'styles', blank= True)
     description = models.TextField(blank= True)
-    
+    def save(self, *args, **kwargs):
+        if self.name:
+            self.name = self.name.lower()
+        super().save(*args, **kwargs)
+        
     def __str__(self):
-        return self.name
+        return self.name.title()
     
 class Color(models.Model):
     name = models.CharField(max_length= 50, unique= True,)
     title= models.ManyToManyField(Title, related_name= 'colors', blank= True)
     hex_code= ColorField(default='#000000', unique= True)
     
+    def __str__(self):
+        return self.name.title()
+    
     @classmethod
     def get_or_create_by_hex(cls, hex_code):
         # Automatically generate color name from hex code if not provided
         try:
-            self.name = webcolors.hex_to_name(self.hex_code, spec='css3')
+            name = webcolors.hex_to_name(hex_code, spec='css3')
         except ValueError:
-            rgb = webcolors.hex_to_rgb(self.hex_code)
+            rgb = webcolors.hex_to_rgb(hex_code)
             name = cls.closest_color_name(rgb)
 
         color, created = cls.objects.get_or_create(name=name, defaults = {'hex_code': hex_code})
@@ -263,7 +275,7 @@ class OutfitImage(models.Model):
         return os.path.join('outfits', filename)
 
     image = models.ImageField(upload_to=image_upload_path)
-    title = models.CharField(max_length=100)
+    title = models.ForeignKey(Title, on_delete= models.PROTECT)
     description = models.TextField(blank=True)
     style = models.ForeignKey(Style, on_delete= models.PROTECT)
     color = models.ForeignKey(Color, on_delete= models.PROTECT)
@@ -310,9 +322,9 @@ class Outfit(models.Model):
     user = models.ForeignKey('User', on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     items = models.ManyToManyField(ClothingItem)
-    occasion = models.CharField(max_length=20, choices=OCCASION_CHOICES)
-    style = models.CharField(max_length=20, choices=STYLE_CHOICES)
-    color = models.CharField(max_length=20, choices=COLOR_CHOICES)
+    occasion = models.CharField(max_length=20)
+    style = models.CharField(max_length=20)
+    color = models.CharField(max_length=20)
     inspiration = models.ForeignKey(
         OutfitImage, 
         on_delete=models.SET_NULL, 

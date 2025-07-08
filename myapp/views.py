@@ -121,7 +121,7 @@ def outfit(request):    # Integrated with model
                 style= style_obj,
                 occasions= occasion_obj
             ).order_by('-created_at')
-            color_instance = Color.objects.get(hex_code=color)
+            color_instance = Color.get_or_create_by_hex(color)
             color_name = color_instance.name
             logger.debug(f"Color name: {color_name}")
             logger.debug(f"Found {exact_matches.count()} exact matches")
@@ -177,7 +177,7 @@ def outfit(request):    # Integrated with model
         
             context = {
                 'style': style,
-                'color': color,
+                'color': color_name,
                 'occasion': occasion,
                 'score': score,
                 'exact_outfits_data': exact_outfits_data,

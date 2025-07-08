@@ -1,10 +1,16 @@
 
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from . import views
 
 from django.conf import settings
 from django.conf.urls.static import static
+
+from rest_framework.routers import DefaultRouter
+from .viewsets import TitleViewSet
+
+router = DefaultRouter()
+router.register(r'titles', TitleViewSet)
 
 urlpatterns = [
     # Core Pages
@@ -29,7 +35,7 @@ urlpatterns = [
 
     # API
     path("api/body-type/", views.get_body_type, name="get_body_type"),
-
+    path('', include(router.urls)),
 ]
 
 # This serves static files during development and handles media files uploaded by the users

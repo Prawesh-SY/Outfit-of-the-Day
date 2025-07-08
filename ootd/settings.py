@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'myapp.apps.MyappConfig',
     'colorfield',
-    # 'rest-framework',
+    'rest_framework',
     
 ]
 

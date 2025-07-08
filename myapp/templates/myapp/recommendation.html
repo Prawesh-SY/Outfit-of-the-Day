@@ -248,7 +248,7 @@
 {% block content %}
   <div class="header">
     <h1>Outfit Recommendation</h1>
-    <p>For <strong>{{ occasion }}</strong> occasion in <strong>{{ color }}</strong> {{ style }} style</p>
+    <p>For <strong>{{ occasion }}</strong> occasion in <strong>{{ color|title }}</strong> {{ style }} style</p>
     <div class="score-badge">Compatibility Score: {{ score|floatformat:1 }}/10</div>
   </div>
 
