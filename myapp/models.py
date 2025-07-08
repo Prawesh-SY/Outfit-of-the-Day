@@ -66,7 +66,8 @@ class BodyMeasurement(models.Model):
         ('pear', 'Pear'),
         ('apple', 'Apple'),
         ('rectangle', 'Rectangle'),
-        ('inverted', 'Inverted Triangle')
+        ('inverted', 'Inverted Triangle'),
+        ('undefined', 'Undefined')
     ]
     
     user = models.OneToOneField(
@@ -90,6 +91,7 @@ class BodyMeasurement(models.Model):
         max_length=20,
         choices=BODY_TYPES,
         blank=True,
+        default= 'undefined',
         editable=False
     )
     last_updated = models.DateTimeField(auto_now=True)
@@ -118,11 +120,11 @@ class BodyMeasurement(models.Model):
         elif bust >= hips + 2 and bust > waist:
             self.body_type = 'inverted'
         else:
-            self.body_type = ''
+            self.body_type = 'undefined'
 
 
     def __str__(self):
-        return f"{self.user.get_full_name()}'s measurements ({self.body_type or 'Not calculated'})"
+        return f"{self.user.get_full_name()}'s measurements ({self.get_body_type_display()})"
 
 class BraSize(models.Model):
     CUP_SIZES = [

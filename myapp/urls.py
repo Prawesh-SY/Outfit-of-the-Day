@@ -32,9 +32,13 @@ urlpatterns = [
     path("outfit/", views.outfit, name="outfit"),
     path("favorites/", views.favorite_outfits, name="favorite_outfits"),
     path("favorites/toggle/<int:outfit_id>/", views.toggle_favorite, name="toggle_favorite"),
+    
+    # Body Type
+    path("body/", views.body_type_view, name="body_calculator"),
+    
 
     # API
-    path("api/body-type/", views.get_body_type, name="get_body_type"),
+    path("body-type/", views.get_body_type, name="get_body_type"),
     path('', include(router.urls)),
 ]
 

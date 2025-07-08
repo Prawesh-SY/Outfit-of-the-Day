@@ -401,20 +401,22 @@ def get_body_type(request): # Integrated with model
             if not (20 <= bust <= 80) or not (20 <= waist <= 80) or not (20 <= hips <= 80):
                 return JsonResponse({'error': 'Measurements must be between 20 and 80 inches'}, status=400)
             
-            # Calculate body type (same logic as in your model)
-            if abs(bust - hips) <= 1 and waist < min(bust, hips) - 2:
-                body_type = 'Hourglass'
-            elif hips > bust + 2 and hips > waist:
-                body_type = 'Pear'
-            elif waist > bust and waist > hips:
-                body_type = 'Apple'
-            elif abs(bust - hips) <= 1 and abs(bust - waist) <= 1:
-                body_type = 'Rectangle'
-            elif bust > hips + 2 and bust > waist:
-                body_type = 'Inverted Triangle'
-            else:
-                body_type = 'Undefined'
+            # Calculate using model logic
+            temp = BodyMeasurement(bust= bust, waist= waist, hips= hips)
+            temp.calculate_body_type()
+            body_type = temp.get_body_type_display()
             
+            # Save for authenticated users
+            if request.user.is_authenticated:
+                BodyMeasurement.objects.update_or_create(
+                    user= request.user,
+                    defaults= {
+                        'bust': bust,
+                        'waist': waist,
+                        'hips': hips,
+                        'body_type': temp.body_type
+                    }
+                )
             return JsonResponse({
                 'body_type': body_type,
                 'measurements': {
@@ -427,12 +429,13 @@ def get_body_type(request): # Integrated with model
         # If no measurements provided but user is authenticated, return their saved data
         elif request.user.is_authenticated:
             if hasattr(request.user, 'bodymeasurement'):
+                bm = request.user.bodymeasurement
                 return JsonResponse({
-                    'body_type': request.user.bodymeasurement.get_body_type_display(),
+                    'body_type': bm.get_body_type_display(),
                     'measurements': {
-                        'bust': request.user.bodymeasurement.bust,
-                        'waist': request.user.bodymeasurement.waist,
-                        'hips': request.user.bodymeasurement.hips
+                        'bust': bm.bust,
+                        'waist': bm.waist,
+                        'hips': bm.hips
                     }
                 })
             return JsonResponse({'error': 'No measurements found for this user'}, status=404)
@@ -444,6 +447,25 @@ def get_body_type(request): # Integrated with model
         return JsonResponse({'error': 'Invalid measurement values'}, status=400)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+@login_required
+def body_type_view(request):
+    # Render body type calculator page with saved data
+    context= {}
+    try:
+        bm = request.user.bodymeasurement
+        context['bust'] = bm.bust
+        context['waist'] = bm.waist
+        context['hips'] = bm.hips
+        context['body_data'] = {
+            'bust': bm.bust,
+            'waist': bm.waist,
+            'hips': bm.hips,
+            'body_type': bm.get_body_type_display()
+        }
+    except BodyMeasurement.DoseNotExist:
+        pass
+    
+    return render(request, 'body.html', context)
 
 @login_required
 def profile(request):

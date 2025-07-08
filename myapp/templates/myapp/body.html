@@ -2,185 +2,142 @@
 {% load static %}
 {% block title %}Body Type Calculator{% endblock %}
 {% block style %}
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      /* background: url('../../static/images/background.jpg') no-repeat center center fixed; */
-      /* display: flex; */
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
-
-    .container {
-      background-color: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      width: 300px;
-      text-align: center;
-      margin: 2rem auto;
-    }
-
-    h1 {
-      font-size: 24px;
-      margin-bottom: 20px;
-      color: #333;
-    }
-
-    label {
-      display: block;
-      margin: 10px 0 5px;
-      color: #555;
-      text-align: left;
-    }
-
-    input {
-      width: 100%;
-      padding: 8px;
-      margin-bottom: 10px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-
-    button {
-      width: 100%;
-      padding: 10px;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-
-    button:hover {
-      opacity: 0.9;
-    }
-
-    .calculate-btn {
-      background-color: #4CAF50;
-      margin-bottom: 10px;
-    }
-
-    .home-btn {
-      background-color: #2196F3;
-    }
-
-    #result {
-      margin-top: 20px;
-      font-size: 18px;
-      font-weight: bold;
-      color: #333;
-    }
-
-    .result-box {
-      margin-top: 20px;
-      padding: 15px;
-      background-color: #f8f9fa;
-      border-radius: 5px;
-      border-left: 4px solid #4CAF50;
-    }
-    .body-type {
-      font-weight: bold;
-      color: #2c3e50;
-    }
-
-    .result-box {
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f5f5f5;
+    margin: 0;
+    {% comment %} padding: 20px; {% endcomment %}
+  }
+  .container {
+    background-color: white;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    max-width: 400px;
+    margin: 0 auto;
+  }
+  h1 {
+    color: #2c3e50;
+    text-align: center;
+    margin-bottom: 25px;
+  }
+  label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #333;
+  }
+  input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+  }
+  button {
+    width: 100%;
+    padding: 12px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 10px;
+  }
+  button:hover {
+    background-color: #45a049;
+  }
+  .result-box {
     margin-top: 20px;
     padding: 15px;
     background-color: #f8f9fa;
-    border-radius: 5px;
     border-left: 4px solid #4CAF50;
-    }
-
-    .body-type {
-        font-weight: bold;
-        color: #2c3e50;
-        font-size: 1.1em;
-    }
-
-    .error {
-        color: #dc3545;
-        font-weight: bold;
-    }
-  </style>
+    border-radius: 4px;
+  }
+  .error {
+    color: #dc3545;
+    padding: 10px;
+    background-color: #f8d7da;
+    border-radius: 4px;
+    margin-top: 15px;
+  }
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="container">
-  <div id="userStatus" data-authenticated="{{ request.user.is_authenticated|yesno:'true,false' }}"></div>
-
   <h1>Body Type Calculator</h1>
-  <form id="bodyTypeForm" method="post">
+  <form id="bodyTypeForm">
     {% csrf_token %}
     <label for="bust">Bust (inches):</label>
-    <input type="number" id="bust" name="bust" min="20" max="80" step="0.1" 
-           value="{{ bust|default_if_none:'' }}" required>
-
+    <input type="number" id="bust" name="bust" min="20" max="80" step="0.1" required>
+    
     <label for="waist">Waist (inches):</label>
-    <input type="number" id="waist" name="waist" min="20" max="80" step="0.1" 
-           value="{{ waist|default_if_none:'' }}" required>
-
+    <input type="number" id="waist" name="waist" min="20" max="80" step="0.1" required>
+    
     <label for="hips">Hips (inches):</label>
-    <input type="number" id="hips" name="hips" min="20" max="80" step="0.1" 
-           value="{{ hips|default_if_none:'' }}" required>
-
-    <button type="submit" class="calculate-btn">Calculate Body Type</button>
+    <input type="number" id="hips" name="hips" min="20" max="80" step="0.1" required>
+    
+    <button type="submit" id="submitBtn">Calculate Body Type</button>
   </form>
-
-  {% if body_data %}
-  <div class="result-box">
-    <h3>Your Body Type Results</h3>
-    <p>Bust: {{ body_data.bust|floatformat:1 }} inches</p>
-    <p>Waist: {{ body_data.waist|floatformat:1 }} inches</p>
-    <p>Hips: {{ body_data.hips|floatformat:1 }} inches</p>
-    <p>Body Type: <span class="body-type">{{ body_data.body_type|title }}</span></p>
-  </div>
-  {% endif %}
-
-  <a href="{% url 'home' %}">
-    <button type="button" class="home-btn">Back to Home</button>
-  </a>
+  
+  <div id="resultContainer"></div>
 </div>
 {% endblock %}
 
 {% block jscript %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOM fully loaded"); // Debugging line
+    
     const form = document.getElementById('bodyTypeForm');
-    const resultDiv = document.getElementById('result') || document.createElement('div');
-    const csrfToken = "{{ csrf_token|escapejs }}";
-    const isAuthenticated = document.getElementById('userStatus').dataset.authenticated === 'true';
-
-    if (!document.getElementById('result')) {
-        resultDiv.id = "result";
-        form.parentNode.appendChild(resultDiv);
+    const resultContainer = document.getElementById('resultContainer');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    console.log("Form elements:", {form, resultContainer, submitBtn}); // Debugging line
+    
+    if (!form || !resultContainer || !submitBtn) {
+        console.error("Critical elements not found!");
+        return;
     }
 
-    // Handle form submission
     form.addEventListener('submit', function(e) {
         e.preventDefault();
-
+        console.log("Form submitted"); // Debugging line
+        
+        // Clear previous results
+        resultContainer.innerHTML = '';
+        
+        // Get values
         const bust = parseFloat(document.getElementById('bust').value);
         const waist = parseFloat(document.getElementById('waist').value);
         const hips = parseFloat(document.getElementById('hips').value);
-
+        
+        console.log("Values:", {bust, waist, hips}); // Debugging line
+        
+        // Validate inputs
         if (isNaN(bust) || isNaN(waist) || isNaN(hips)) {
-            alert('Please enter valid numbers for all measurements');
+            showError('Please enter valid numbers for all measurements');
             return;
         }
-
-        if (isAuthenticated) {
-            form.submit();  // Traditional form submit for logged-in users
-        } else {
-            calculateBodyType(bust, waist, hips);  // AJAX call for guests
+        
+        if (bust < 20 || bust > 80 || waist < 20 || waist > 80 || hips < 20 || hips > 80) {
+            showError('Measurements must be between 20 and 80 inches');
+            return;
         }
-    });
-
-    // AJAX function to calculate body type
-    function calculateBodyType(bust, waist, hips) {
-        fetch('/api/body-type/', {
+        
+        // Disable button during request
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Calculating...';
+        
+        // Get CSRF token
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        // Make AJAX request
+        fetch('{% url "get_body_type" %}', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -193,28 +150,48 @@ document.addEventListener('DOMContentLoaded', function() {
             })
         })
         .then(response => {
-            if (!response.ok) throw new Error('Network response was not ok');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Calculate Body Type';
+            
+            if (!response.ok) {
+                return response.json().then(err => {
+                    throw new Error(err.error || 'Server error');
+                });
+            }
             return response.json();
         })
         .then(data => {
+            console.log("Response data:", data); // Debugging line
             if (data.error) {
-                resultDiv.innerHTML = '<p class="error">' + data.error + '</p>';
+                showError(data.error);
             } else {
-                resultDiv.innerHTML = `
-                    <div class="result-box">
-                        <h3>Your Body Type Results</h3>
-                        <p>Bust: ${bust} inches</p>
-                        <p>Waist: ${waist} inches</p>
-                        <p>Hips: ${hips} inches</p>
-                        <p>Body Type: <span class="body-type">${data.body_type}</span></p>
-                    </div>
-                `;
+                showResults(data);
             }
         })
         .catch(error => {
-            console.error('Error:', error);
-            resultDiv.innerHTML = '<p class="error">Error calculating body type. Please try again.</p>';
+            console.error("Fetch error:", error);
+            showError(error.message || 'Error calculating body type');
         });
+    });
+    
+    function showResults(data) {
+        resultContainer.innerHTML = `
+            <div class="result-box">
+                <h3>Results</h3>
+                <p>Bust: ${data.measurements.bust.toFixed(1)} inches</p>
+                <p>Waist: ${data.measurements.waist.toFixed(1)} inches</p>
+                <p>Hips: ${data.measurements.hips.toFixed(1)} inches</p>
+                <p>Body Type: <strong>${data.body_type}</strong></p>
+            </div>
+        `;
+    }
+    
+    function showError(message) {
+        resultContainer.innerHTML = `
+            <div class="error">
+                ${message}
+            </div>
+        `;
     }
 });
 </script>
