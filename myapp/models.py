@@ -6,6 +6,7 @@ import os
 from colorfield.fields import ColorField
 import webcolors
 from webcolors._definitions import _CSS3_NAMES_TO_HEX
+from django.utils.text import slugify
 
 
 class UserManager(BaseUserManager):
@@ -186,8 +187,18 @@ class BraSize(models.Model):
         return f"{self.user.first_name if self.user else "Guest"}'s bra size: {self.band_size}{self.cup_size} (Updated: {self.last_updated})"
 
 class Title(models.Model):
+    def image_upload_path(instance, filename):
+        return os.path.join('titles',filename)
     name = models.CharField(max_length=100, unique= True, help_text="Name of your Collection, e.g, Summer Fits, Beach Vacation")
     description= models.TextField(blank= True)
+    slug = models.SlugField(max_length=100, unique=True, blank=True)
+    description = models.TextField(blank=True)
+    image = models.ImageField(upload_to=image_upload_path, blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
     
     def __str__(self):
         return self.name
@@ -200,7 +211,7 @@ class Occasion(models.Model):
     def save(self, *args, **kwargs):
         if self.name:
             self.name = self.name.lower()
-        super().save(self, *args, **kwargs)
+        super().save(*args, **kwargs)
     
     def __str__(self):
         return self.name.title()
@@ -218,7 +229,7 @@ class Style(models.Model):
         return self.name.title()
     
 class Color(models.Model):
-    name = models.CharField(max_length= 50, unique= True,)
+    name = models.CharField(max_length= 50, unique= True,blank= False)
     title= models.ManyToManyField(Title, related_name= 'colors', blank= True)
     hex_code= ColorField(default='#000000', unique= True)
     
@@ -253,6 +264,16 @@ class Color(models.Model):
         
         return closest
 
+    def save(self,*args,**kwargs):
+        if not self.name:
+            try:
+                self.name= webcolors.hex_to_name(self.hex_code, spec='css3')
+            except ValueError:
+                rgb = webcolors.hex_to_rgb(self.hex_code)
+                self.name = self.closest_color_name(rgb)
+        super().save(*args, **kwargs)
+            
+    
     def __str__(self):
         return f"{self.name.upper()}"
     
@@ -277,7 +298,7 @@ class OutfitImage(models.Model):
         return os.path.join('outfits', filename)
 
     image = models.ImageField(upload_to=image_upload_path)
-    title = models.ForeignKey(Title, on_delete= models.PROTECT)
+    title = models.ForeignKey(Title, related_name='outfit_images', on_delete= models.PROTECT)
     description = models.TextField(blank=True)
     style = models.ForeignKey(Style, on_delete= models.PROTECT)
     color = models.ForeignKey(Color, on_delete= models.PROTECT)
@@ -319,7 +340,6 @@ class ClothingItem(models.Model):
     def __str__(self):
         return f"{self.name} ({self.category})"
 
-
 class Outfit(models.Model):
     user = models.ForeignKey('User', on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
@@ -337,17 +357,6 @@ class Outfit(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.get_occasion_display()})"
-    
-    def get_compatibility(self):
-        """
-        Get compatibility score and message for this outfit
-        """
-        outfit_image = OutfitImage()
-        return outfit_image.get_compatibility_score(
-            self.occasion,
-            self.style,
-            self.color
-        )
 
 class FavoriteOutfit(models.Model):
     user = models.ForeignKey('User', on_delete=models.CASCADE)
@@ -364,6 +373,9 @@ class FavoriteOutfit(models.Model):
 class CompatibilityRules(models.Model):
     class Meta:
         unique_together= ['occasion', 'style', 'color']
+        verbose_name= "Compatibility Rule"
+        verbose_name_plural= "Compatibility Rules"
+        ordering = ['-last_updated']
     
     occasion= models.ForeignKey(Occasion, on_delete= models.CASCADE)
     style= models.ForeignKey(Style, on_delete= models.CASCADE)
@@ -375,9 +387,18 @@ class CompatibilityRules(models.Model):
     
     @classmethod
     def get_or_create_rule(cls, occasion_name, style_name, color_hex):
+        # Make sure we have string names, not model objects
+        if hasattr(occasion_name, "name"):
+            occasion_str = occasion_name.name
+        else:
+            occasion_str = str(occasion_name)
+        if hasattr(style_name, "name"):
+            style_str = style_name.name
+        else:
+            style_str = str(style_name)
         # Automaitcally create missing occasion/styles/colors
-        occasion, _ =Occasion.objects.get_or_create(name= occasion_name.lower())
-        style, _ = Style.objects.get_or_create(name= style_name.lower())
+        occasion, _ =Occasion.objects.get_or_create(name= occasion_str.lower())
+        style, _ = Style.objects.get_or_create(name= style_str.lower())
         color = Color.get_or_create_by_hex(color_hex)
         
         rule, created = cls.objects.get_or_create(

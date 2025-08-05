@@ -276,7 +276,7 @@
         <div class="rating-section">
           <h3 class="rating-title">Rate this combination</h3>
           <p class="current-rating">
-            Current score: {{ score|floatformat:1 }}/10 
+            Current score: {{ rule.score|floatformat:1 }}/10 
             (based on {{ rule.vote_count }} vote{{ rule.vote_count|pluralize }})
           </p>
           
@@ -285,7 +285,7 @@
             <input type="hidden" name="rule_id" value="{{ rule_id }}">
             
             <div class="star-rating">
-              {% for i in "12345678910" reversed %}
+              {% for i in star_range %}
                 <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}">
                 <label for="star{{ i }}">★</label>
               {% endfor %}
@@ -294,6 +294,7 @@
             <button type="submit" class="rating-btn">Submit Rating</button>
           </form>
           
+          <p class="rating-error" id="rating-error" style="color: red; display: none;"></p>
           <p class="rating-thanks" id="rating-thanks">Thank you for your rating!</p>
         </div>
 
@@ -309,6 +310,7 @@
     <h2>Similar Outfits</h2>
     <div class="similar-container">
       {% for outfit in similar_outfits_data %}
+      <a href="{% url 'outfit_detail' outfit.id %}" class="similar-card-link" style="text-decoration:none;color:inherit;">
         <div class="similar-card">
           {% if outfit.image_url %}
             <img src="{{ outfit.image_url }}" alt="{{ outfit.title }}">

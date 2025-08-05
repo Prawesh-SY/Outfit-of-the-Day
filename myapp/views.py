@@ -1,10 +1,9 @@
-from django.shortcuts import render
-from django.shortcuts import render, redirect
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse, JsonResponse
 
 # for sign_up, log_in, and log_out
 # from django.contrib.auth.models import User
-from .models import Outfit, OutfitImage, FavoriteOutfit, BodyMeasurement, BraSize, CompatibilityRules, Color
+from .models import Outfit, OutfitImage, FavoriteOutfit, BodyMeasurement, BraSize, CompatibilityRules, Color, Title
 
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth import authenticate, login, logout
@@ -24,7 +23,8 @@ logger= logging.getLogger(__name__) # This creates a logger with your module's n
 
 
 def index(request):
-    return render(request, 'myapp/index.html')
+    titles = Title.objects.all().order_by('name')
+    return render(request, 'myapp/index.html', {'titles':titles})
 
 def sign_up(request):   # Integrated with model
     if request.method == 'POST':
@@ -183,7 +183,8 @@ def outfit(request):    # Integrated with model
                 'exact_outfits_data': exact_outfits_data,
                 'similar_outfits_data': similar_outfits_data,
                 'media_url': settings.MEDIA_URL,  # Important for serving media files
-                'rule_id': rule.id # Add rule ID for rating form
+                'rule_id': rule.id, # Add rule ID for rating form
+                'star_range': range(10,0,-1)
             }
             # Debugging
             logger.debug(f"""
@@ -222,6 +223,51 @@ def outfit(request):    # Integrated with model
 def favorite_outfits(request):  # Integrated with model
     favorites = FavoriteOutfit.objects.filter(user=request.user).select_related('outfit')
     return render(request, 'myapp/favorites.html', {'favorites': favorites})
+
+@login_required
+def rate_outfit(request):
+    if request.method == 'POST':
+        try:
+            rule_id = request.POST.get('rule_id')
+            user_score = float(request.POST.get('rating'))
+
+            if not 0 <= user_score <= 10:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Rating must be between 0 and 10'
+                })
+
+            rule = CompatibilityRules.objects.get(id=rule_id)
+            updated_rule = CompatibilityRules.update_score(
+                occasion_name=rule.occasion.name,
+                style_name=rule.style.name,
+                color_hex=rule.color.hex_code,
+                user_score=user_score
+            )
+            return JsonResponse({
+                'success': True,
+                'new_score': updated_rule.score,
+                'vote_count': updated_rule.vote_count
+            })
+        except CompatibilityRules.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'Rule not found'
+            })
+        except ValueError:
+            return JsonResponse({
+                'success': False,
+                'message': 'Invalid rating value'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': str(e)
+            })
+    return JsonResponse({
+        'success': False,
+        'message': 'Invalid request method'
+    })
 
 @require_POST
 def toggle_favorite(request, outfit_id):    # Integrated with model
@@ -478,3 +524,45 @@ def about(request):
 def closet(request):
     return render(request, 'myapp/closet.html')
 
+@login_required
+def outfit_detail(request, outfit_id):
+    outfit = get_object_or_404(OutfitImage, pk=outfit_id)
+
+    # Using same logic as main recommendation
+    rule = CompatibilityRules.get_or_create_rule(
+        occasion_name=outfit.occasions.first().name,
+        style_name=outfit.style.name,
+        color_hex=outfit.color.hex_code
+    )
+    score = rule.score
+    # For favorites
+    is_favorite = False
+    if request.user.is_authenticated:
+        is_favorite = FavoriteOutfit.objects.filter(user=request.user, outfit=outfit).exists()
+
+    context = {
+        'main_outfit': {
+            'id': outfit.id,
+            'title': outfit.title,
+            'description': outfit.description,
+            'style': outfit.style.name,
+            'color': outfit.color.name,
+            'occasions': ", ".join(o.name for o in outfit.occasions.all()),
+            'image_url': outfit.image.url if outfit.image else None,
+            'created_at': outfit.created_at,
+            'is_favorite': is_favorite,
+        },
+        'score': score,
+        'rule_id': rule.id,
+        'rule': rule,
+        'star_range': range(10, 0, -1),  # For the stars in the template
+    }
+    return render(request, 'myapp/outfit_detail.html', context)
+
+def title_detail(request, slug):
+    title = get_object_or_404(Title, slug=slug)
+    outfits = title.outfit_images.all()
+    return render(request, 'myapp/title_detail.html',{
+        'title': title,
+        'outfits': outfits,
+    })

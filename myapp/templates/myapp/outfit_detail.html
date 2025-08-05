@@ -1,0 +1,261 @@
+{% extends "myapp/base.html" %}
+{% load static %}
+
+{% block title %}Outfit Details{% endblock %}
+
+{% block style %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+crossorigin="anonymous" 
+referrerpolicy="no-referrer"
+>
+<style>
+  .outfit-detail-container {
+    background: #fff;
+    border-radius: 14px;
+    max-width: 500px;
+    margin: 3rem auto 2rem;
+    padding: 2rem 2rem 1.2rem;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+    text-align: center;
+  }
+  .outfit-img {
+    max-width: 100%;
+    width: 340px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.07);
+    margin-bottom: 1.4rem;
+  }
+  .outfit-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: .2rem;
+    text-transform: capitalize;
+  }
+  .outfit-meta {
+    color: #666;
+    font-size: 1rem;
+    margin-bottom: .9rem;
+  }
+  .outfit-description {
+    color: #444;
+    margin-bottom: 1.2rem;
+    font-size: 1rem;
+    min-height: 1.5em;
+  }
+  .fav-wrapper {
+    margin: 0.6rem 0 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .7rem;
+  }
+  .favorite-btn.btn-fav {
+    padding: 0.3rem 1.1rem;
+    background-color: #CD5C5C;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: .97rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  .favorite-btn.btn-fav.favorited {
+    background-color: #28a745;
+  }
+  .heart-icon {
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #888;
+    transition: color 0.3s;
+  }
+  .heart-icon.favorited {
+    color: red;
+  }
+  /* Rating styles */
+  .rating-section {
+    background-color: #f9fafc;
+    border-radius: 10px;
+    padding: 1.2rem 1rem 1rem;
+    margin: 1.8rem auto 1.2rem;
+    max-width: 400px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    text-align: center;
+  }
+  .score-badge {
+    display: inline-block;
+    padding: 0.32rem 1.1rem;
+    background-color: #4CAF50;
+    color: white;
+    border-radius: 20px;
+    font-weight: bold;
+    margin: 0 0 .5rem 0;
+    font-size: 1.13rem;
+  }
+  .star-rating {
+    direction: rtl;
+    unicode-bidi: bidi-override;
+    font-size: 2.1em;
+    margin-bottom: 1.1rem;
+    letter-spacing: -3px;
+  }
+  .star-rating input { display: none; }
+  .star-rating label {
+    color: #ddd;
+    cursor: pointer;
+    display: inline-block;
+    margin: 0 2px;
+    transition: color 0.15s;
+  }
+  .star-rating label:hover,
+  .star-rating label:hover ~ label,
+  .star-rating input:checked ~ label {
+    color: gold;
+  }
+  .rating-btn {
+    padding: 0.55rem 1.2rem;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1.07rem;
+    transition: background-color 0.2s;
+  }
+  .rating-btn:hover { background-color: #3d8b40; }
+  .rating-thanks {
+    margin-top: .7rem;
+    color: #4CAF50;
+    font-weight: 500;
+    display: none;
+  }
+  .btn-back {
+    display: inline-block;
+    margin-top: 2rem;
+    color: #007BFF;
+    background: none;
+    border: none;
+    text-decoration: underline;
+    font-size: 1.03rem;
+    cursor: pointer;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="outfit-detail-container">
+  <h1 class="outfit-title">{{ main_outfit.title }}</h1>
+  <div class="outfit-meta">
+    <span>Style: {{ main_outfit.style|title }}</span> |
+    <span>Color: {{ main_outfit.color|title }}</span>
+    {% if main_outfit.occasions %}| <span>Occasion: {{ main_outfit.occasions|title }}</span>{% endif %}
+  </div>
+  {% if main_outfit.image_url %}
+    <img src="{{ main_outfit.image_url }}" class="outfit-img" alt="{{ main_outfit.title }}">
+  {% else %}
+    <img src="{% static 'myapp/images/placeholder-outfit.jpg' %}" class="outfit-img" alt="No image available">
+  {% endif %}
+  <div class="outfit-description">
+    {{ main_outfit.description|default:"No description available." }}
+  </div>
+  <div class="fav-wrapper">
+    <button class="favorite-btn btn-fav {% if main_outfit.is_favorite %}favorited{% endif %}" 
+            data-outfit-id="{{ main_outfit.id }}">
+        {% if main_outfit.is_favorite %}Added to Favorites{% else %}Add to Favorites{% endif %}
+    </button>
+    <i class="heart-icon fa-heart {% if main_outfit.is_favorite %}fa-solid favorited{% else %}fa-regular{% endif %}" 
+       data-outfit-id="{{ main_outfit.id }}"></i>
+  </div>
+
+  <div class="rating-section">
+    <div class="score-badge">Current Score: {{ score|floatformat:1 }}/10</div>
+    <form method="post" action="{% url 'rate_outfit' %}" id="rating-form">
+      {% csrf_token %}
+      <input type="hidden" name="rule_id" value="{{ rule_id }}">
+      <div class="star-rating">
+        {% for i in star_range %}
+          <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}">
+          <label for="star{{ i }}">★</label>
+        {% endfor %}
+      </div>
+      <button type="submit" class="rating-btn">Submit Rating</button>
+    </form>
+    <p class="rating-thanks" id="rating-thanks">Thank you for your rating!</p>
+  </div>
+
+  <a href="{% url 'outfit' %}" class="btn-back">← Back to Recommendations</a>
+</div>
+{% endblock %}
+
+{% block jscript %}
+<script>
+  // Favorite button logic (as in your other template)
+  document.addEventListener('click', function(e) {
+    const favBtn = e.target.matches('.favorite-btn') ? e.target : 
+                  e.target.matches('.heart-icon') ? e.target : 
+                  e.target.closest('.favorite-btn, .heart-icon');
+    if (!favBtn || !favBtn.dataset.outfitId) return;
+    const outfitId = favBtn.dataset.outfitId;
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    fetch(`/favorites/toggle/${outfitId}/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': csrftoken},
+    })
+    .then(response => response.json())
+    .then(data => {
+        const wrapper = favBtn.closest('.fav-wrapper');
+        if (wrapper) {
+            const heartIcon = wrapper.querySelector('.heart-icon');
+            const textBtn = wrapper.querySelector('.favorite-btn');
+            if (heartIcon) {
+                heartIcon.classList.toggle('favorited');
+                heartIcon.classList.toggle('fa-solid');
+                heartIcon.classList.toggle('fa-regular');
+            }
+            if (textBtn) {
+                textBtn.classList.toggle('favorited');
+                textBtn.textContent = textBtn.classList.contains('favorited') 
+                    ? 'Added to Favorites' : 'Add to Favorites';
+            }
+        }
+    }).catch(error => {console.error('Error:', error);});
+  });
+
+  // Rating AJAX logic
+  const ratingForm = document.getElementById('rating-form');
+  if (ratingForm) {
+    ratingForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const form = e.target;
+      const formData = new FormData(form);
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const thanksMsg = document.getElementById('rating-thanks');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
+      fetch(form.action, {
+          method: 'POST',
+          body: formData,
+          headers: {'X-Requested-With': 'XMLHttpRequest'},
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          thanksMsg.style.display = 'block';
+          setTimeout(() => {
+              form.reset();
+              submitBtn.disabled = false;
+              submitBtn.textContent = 'Submit Rating';
+              thanksMsg.style.display = 'none';
+          }, 1500);
+          // Optionally, update the current score shown
+          document.querySelector('.score-badge').textContent = `Current Score: ${data.new_score.toFixed(1)}/10`;
+        }
+      })
+      .catch(error => {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit Rating';
+        alert('Failed to submit rating. Please try again.');
+      });
+    });
+  }
+</script>
+{% endblock %}

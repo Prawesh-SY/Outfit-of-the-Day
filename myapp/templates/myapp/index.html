@@ -22,13 +22,13 @@
       <div class="tool-box">
       <h3>Try Now</h3>
       <img src="{% static 'myapp/images/outfit.png' %}" alt="Style Me Now">
-      <a href="{% url 'cup' %}" class="btn-link">Style Me Now!</a>
+      <a href="{% url 'outfit' %}" class="btn-link">Style Me Now!</a>
     </div>
   
     <div class="tool-box">
       <h3>Know Your Body Type</h3>
       <img src="{% static 'myapp/images/4.png' %}" alt="Body Type Calculator">
-      <a href= "{% url "body" %}"
+      <a href= "{% url 'body' %}">
       <button>Try Now!</button>
       </a>
     </div>
@@ -36,31 +36,18 @@
   
    <!-- Category Boxes -->
   <section class="fit-categories">
-    <div class="fit-box" onclick="location.href='summer.html'">
-      <img src="{% static 'myapp/images/summer.png' %}" alt="Summer Fits">
-      <span>Summer Fits</span>
+  {% for title in titles %}
+    <div class="fit-box" onclick="location.href='{% url 'title_detail' title.slug %}'" style="cursor:pointer">
+      {% if title.image %}
+        <img src="{{ title.image.url }}" alt="{{ title.name }}">
+      {% else %}
+        <img src="{% static 'myapp/images/placeholder.png' %}" alt="{{ title.name }}">
+      {% endif %}
+      <span>{{ title.name }}</span>
     </div>
-    <div class="fit-box" onclick="location.href='winter.html'">
-      <img src="{% static 'myapp/images/winter.jpg' %}" alt="Winter Fits">
-      <span>Winter Fits</span>
-    </div>
-    <div class="fit-box" onclick="location.href='spring.html'">
-      <img src="{% static 'myapp/images/spring.jpg' %}" alt="Spring Fits">
-      <span>Spring Fits</span>
-    </div>
-    <div class="fit-box" onclick="location.href='beach.html'">
-      <img src="{% static 'myapp/images/beach.jpg' %}" alt="Beach Vacation">
-      <span>Beach Vacation</span>
-    </div>
-    <div class="fit-box" onclick="location.href='modest.html'">
-      <img src="{% static 'myapp/images/modest.jpeg' %}" alt="Modest Wears">
-      <span>Modest Fits</span>
-    </div>
-    <div class="fit-box" onclick="location.href='party.html'">
-      <img src="{% static 'myapp/images/party.jpeg' %}" alt="Party Looks">
-      <span>Party Fits</span>
-    </div>
-  </section>
+  {% endfor %}
+</section>
+
   
   
   

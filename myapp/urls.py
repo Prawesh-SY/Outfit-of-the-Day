@@ -16,6 +16,7 @@ urlpatterns = [
     # Core Pages
     path("", views.index, name="home"),
     path("about/", views.about, name="about"),
+    path('category/<slug:slug>/', views.title_detail, name='title_detail'),
 
     # Authentication
     path("signup/", views.sign_up, name="signup"),
@@ -32,6 +33,11 @@ urlpatterns = [
     path("outfit/", views.outfit, name="outfit"),
     path("favorites/", views.favorite_outfits, name="favorite_outfits"),
     path("favorites/toggle/<int:outfit_id>/", views.toggle_favorite, name="toggle_favorite"),
+    path('outfit/<int:outfit_id>/', views.outfit_detail, name="outfit_detail"),
+
+    # Outfit rating
+    path('rate/', views.rate_outfit, name='rate_outfit'),
+    
     
     # Body Type
     path("body/", views.body_type_view, name="body_calculator"),

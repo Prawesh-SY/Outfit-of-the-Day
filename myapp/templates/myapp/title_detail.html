@@ -1,0 +1,149 @@
+{% extends "myapp/base.html" %}
+{% load static %}
+
+{% block title %}{{ title.name }} | OOTD{% endblock %}
+
+{% block style %}
+<link rel="stylesheet" href="{% static 'myapp/css/combined.css' %}" />
+<style>
+.category-header {
+  text-align: center;
+  margin: 2.5rem 0 1.5rem 0;
+}
+.category-image {
+  width: 220px;
+  height: 220px;
+  object-fit: cover;
+  border-radius: 16px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.10);
+  margin-bottom: 1rem;
+}
+.category-description {
+  max-width: 600px;
+  margin: 0 auto 2.5rem auto;
+  color: #555;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.outfit-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: center;
+  margin-bottom: 3rem;
+}
+
+.outfit-card {
+  background: #fff;
+  border-radius: 10px;
+  width: 270px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  padding: 1rem 1rem 1.2rem 1rem;
+  transition: box-shadow 0.2s;
+  text-align: center;
+  position: relative;
+  cursor: pointer;
+}
+
+.outfit-card:hover {
+  box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+  border-color: #007BFF;
+}
+
+.outfit-card img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 0.8rem;
+}
+
+.outfit-title {
+  font-weight: 600;
+  font-size: 1.14rem;
+  margin: 0.7rem 0 0.3rem 0;
+  color: #222;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.outfit-desc {
+  font-size: 0.96rem;
+  color: #777;
+  margin-bottom: 0.4rem;
+  min-height: 38px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.outfit-meta {
+  color: #888;
+  font-size: 0.88rem;
+}
+
+.back-link {
+  display: inline-block;
+  margin: 2rem auto 1rem auto;
+  padding: 0.7rem 1.4rem;
+  background-color: #007BFF;
+  color: white;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+.back-link:hover {
+  background: #0056b3;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+  <div class="category-header">
+    {% if title.image %}
+      <img src="{{ title.image.url }}" class="category-image" alt="{{ title.name }}">
+    {% else %}
+      <img src="{% static 'myapp/images/placeholder.png' %}" class="category-image" alt="{{ title.name }}">
+    {% endif %}
+    <h1>{{ title.name }}</h1>
+  </div>
+  {% if title.description %}
+    <div class="category-description">
+      {{ title.description }}
+    </div>
+  {% endif %}
+
+  {% if outfits %}
+    <div class="outfit-grid">
+      {% for outfit in outfits %}
+        <div class="outfit-card" onclick="window.location.href='{% url 'outfit_detail' outfit.id %}'">
+          {% if outfit.image %}
+            <img src="{{ outfit.image.url }}" alt="{{ outfit.title.name }}">
+          {% else %}
+            <img src="{% static 'myapp/images/placeholder-outfit.jpg' %}" alt="No image">
+          {% endif %}
+          <div class="outfit-title">{{ outfit.title.name }}</div>
+          <div class="outfit-desc">{{ outfit.description|default:"No description" }}</div>
+          <div class="outfit-meta">
+            <span>{{ outfit.style.name|title }}</span>
+            &nbsp;|&nbsp;
+            <span>{{ outfit.color.name|title }}</span>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div style="text-align:center; margin:2.5rem 0; color:#777;">
+      <strong>No outfits found in this collection yet.</strong>
+    </div>
+  {% endif %}
+
+  <div style="text-align:center;">
+    <a href="{% url 'index' %}" class="back-link">&larr; Back to All Categories</a>
+  </div>
+{% endblock %}
