@@ -1,22 +1,29 @@
-# Django
-*.sqlite3
+# Django/Python
 __pycache__/
 *.pyc
+*.pyo
+*.log
 .env
 .env.local
-*.log
 
-# Virtual Environment
-myenv/
+# Virtual Envs
 venv/
+myenv/
 .env/
 
-# IDE & OS files
+# IDE/OS files
 .idea/
 .vscode/
-.DS_Stored
+.DS_Store
 
-# Ignore Django migration files
-*/migrations/
-*/migrations/*.py
-*/migrations/*.pyc
+# STATICFILES
+staticfiles/
+
+# Uncomment the next lines ONLY if you do NOT want to share user uploads
+# media/
+
+# DO NOT ignore db or migrations, so comment these out if present:
+# *.sqlite3
+# */migrations/
+# */migrations/*.py
+# */migrations/*.pyc

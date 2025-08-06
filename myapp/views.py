@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse, JsonResponse
-
+from django.db import transaction
 # for sign_up, log_in, and log_out
 # from django.contrib.auth.models import User
 from .models import Outfit, OutfitImage, FavoriteOutfit, BodyMeasurement, BraSize, CompatibilityRules, Color, Title
@@ -120,21 +120,30 @@ def outfit(request):    # Integrated with model
                 color= color_obj,
                 style= style_obj,
                 occasions= occasion_obj
-            ).order_by('-created_at')
+            ).order_by('-score','-created_at')
             color_instance = Color.get_or_create_by_hex(color)
             color_name = color_instance.name
             logger.debug(f"Color name: {color_name}")
             logger.debug(f"Found {exact_matches.count()} exact matches")
             
-            # Get the simialr matches
+            # 1. Main Outfit (recommended)
+            main_outfit = list(exact_matches[:1])
+       
+            # 2. Other Exact (next 5, skip the first)
+            other_exact = list(exact_matches[1:6])
+
+            # Track IDs we have already included
+            shown_ids = [o.id for o in main_outfit+other_exact]
+
+            # 3. Similar Outfits (same style + occasions, different color, not already shown)
             other_matches= OutfitImage.objects.filter(
                 style= style_obj,
                 occasions= occasion_obj
-            ).exclude(color=color_obj).order_by('-created_at')
+            ).exclude(color=color_obj).exclude(id__in=shown_ids).order_by('-score','-created_at')[:5]
             logger.debug(f"Found {other_matches.count()} other matches")
 
-            recommended_outfits = list(exact_matches[:1])   #Get 5 exact matches
-            similar_outfits = list(other_matches[:4])   # Get 5 similar matches
+            recommended_outfits = [OutfitImage.objects.get(pk=o.id) for o in exact_matches[:6]]   #Get 5 exact matches
+            similar_outfits = list(other_matches[:5])   # Get 5 similar matches
             logger.debug(f"Selected {len(recommended_outfits)} exact outfits and {len(similar_outfits)} similar outfits")
 
             
@@ -150,7 +159,10 @@ def outfit(request):    # Integrated with model
              
 
             # Process recommended_outfits data
-            exact_outfits_data = [{
+            def serialize(outfit):
+                if not outfit:
+                    return None
+                return {
                 'id' : outfit.id,
                 'title' : outfit.title,
                 'description' : outfit.description,
@@ -160,28 +172,18 @@ def outfit(request):    # Integrated with model
                 'image_url' : outfit.image.url if outfit.image else None,
                 'created_at' : outfit.created_at,
                 'is_favorite' : outfit.id in favorite_outfit_ids,
-            } for outfit in recommended_outfits]
+                'score':getattr(outfit, 'score', 5),
+                'vote_count':getattr(outfit, 'vote_count', 0)
+                }
             
-            # Process similar_outfits data 
-            similar_outfits_data = [{
-                'id' : outfit.id,
-                'title' : outfit.title,
-                'description' : outfit.description,
-                'style' : outfit.style.name,
-                'color' : outfit.color.name,                
-                'occasions' : occasion,
-                'image_url' : outfit.image.url if outfit.image else None,
-                'created_at' : outfit.created_at,
-                'is_favorite' : outfit.id in favorite_outfit_ids,
-                } for outfit in similar_outfits]
-        
             context = {
                 'style': style,
                 'color': color_name,
                 'occasion': occasion,
                 'score': score,
-                'exact_outfits_data': exact_outfits_data,
-                'similar_outfits_data': similar_outfits_data,
+                'main_outfit': serialize(main_outfit[0] if main_outfit and len(main_outfit)> 0  else None),
+                'other_exact_outfits': [serialize(o) for o in other_exact],
+                'similar_outfits': [serialize(o) for o in similar_outfits],
                 'media_url': settings.MEDIA_URL,  # Important for serving media files
                 'rule_id': rule.id, # Add rule ID for rating form
                 'star_range': range(10,0,-1)
@@ -193,9 +195,11 @@ def outfit(request):    # Integrated with model
            Compatibility Score: {score}
            
            Database Query Resutls:
-            Exact matches found: {len(exact_outfits_data)}
+            Main matche found: {len(main_outfit)}
+
+            Exact matches found: {len(other_exact)}
             
-            Similar matches found: {len(similar_outfits_data)}
+            Similar matches found: {len(other_matches)}
             
            Media URL : 
            
@@ -204,12 +208,13 @@ def outfit(request):    # Integrated with model
                 color: {context['color']}
                 occasion: {context['occasion']}
                 score: {context['score']}
-                exact_outfits_data: 
-                    {[(o['id'],
-                    o['image_url']) for o in context['exact_outfits_data']] }
-                similar_outfits_data:
-                    {[(o['id'] , o['image_url']) for o in context['similar_outfits_data']]}
-                         """)
+                main_outfit:
+                {(context['main_outfit']['id'], context['main_outfit']['image_url']) if context['main_outfit'] else None}
+                other_exact_outfits:
+                {[(o['id'], o['image_url']) for o in context['other_exact_outfits']]}
+                similar_outfits:
+                {[(o['id'], o['image_url']) for o in context['similar_outfits']]}
+            """)
             return render(request, 'myapp/recommendation.html', context)
         
         except Exception as e:
@@ -225,49 +230,56 @@ def favorite_outfits(request):  # Integrated with model
     return render(request, 'myapp/favorites.html', {'favorites': favorites})
 
 @login_required
+@require_POST
 def rate_outfit(request):
-    if request.method == 'POST':
         try:
-            rule_id = request.POST.get('rule_id')
+            outfit_id = request.POST.get('outfit_id')
             user_score = float(request.POST.get('rating'))
+            logger.debug(f"Raw POST data: {request.POST}")
 
-            if not 0 <= user_score <= 10:
+            # Validate rating input
+            if not (0 <= user_score <= 10):
                 return JsonResponse({
                     'success': False,
                     'message': 'Rating must be between 0 and 10'
-                })
+                }, status=400)
 
-            rule = CompatibilityRules.objects.get(id=rule_id)
-            updated_rule = CompatibilityRules.update_score(
-                occasion_name=rule.occasion.name,
-                style_name=rule.style.name,
-                color_hex=rule.color.hex_code,
-                user_score=user_score
-            )
+            # Find the outfit and update score atomically
+            with transaction.atomic():
+                from .models import OutfitImage  # Avoid circular import if needed
+                outfit = OutfitImage.objects.select_for_update().get(id=outfit_id)
+                # You could use outfit.update_score(user_score) if you want to centralize the logic in the model
+                # But let's do it here to handle possible exceptions
+
+                new_vote_count = outfit.vote_count + 1
+                new_score = (outfit.score * outfit.vote_count + user_score) / new_vote_count
+                outfit.score = new_score
+                outfit.vote_count = new_vote_count
+                outfit.save(update_fields=['score', 'vote_count'])
+
             return JsonResponse({
                 'success': True,
-                'new_score': updated_rule.score,
-                'vote_count': updated_rule.vote_count
+                'new_score': round(outfit.score, 2),
+                'vote_count': outfit.vote_count,
+                'message': 'Outfit rated successfully.'
             })
-        except CompatibilityRules.DoesNotExist:
+
+        except OutfitImage.DoesNotExist:
             return JsonResponse({
                 'success': False,
-                'message': 'Rule not found'
-            })
-        except ValueError:
+                'message': 'Outfit not found.'
+            }, status=404)
+        except (TypeError, ValueError):
             return JsonResponse({
                 'success': False,
-                'message': 'Invalid rating value'
-            })
+                'message': 'Invalid input.'
+            }, status=400)
         except Exception as e:
+            logger.error(f"Error in rate_outfit: {str(e)}", exc_info=True)
             return JsonResponse({
                 'success': False,
-                'message': str(e)
-            })
-    return JsonResponse({
-        'success': False,
-        'message': 'Invalid request method'
-    })
+                'message': f"An unexpected error occurred: {str(e)}"
+            }, status=500)
 
 @require_POST
 def toggle_favorite(request, outfit_id):    # Integrated with model
@@ -551,10 +563,12 @@ def outfit_detail(request, outfit_id):
             'image_url': outfit.image.url if outfit.image else None,
             'created_at': outfit.created_at,
             'is_favorite': is_favorite,
+            'score':outfit.score,
+            'vote_count':getattr(outfit, "vote_count", 0)
         },
-        'score': score,
-        'rule_id': rule.id,
-        'rule': rule,
+        # 'score': score,
+        # 'rule_id': rule.id,
+        # 'rule': rule,
         'star_range': range(10, 0, -1),  # For the stars in the template
     }
     return render(request, 'myapp/outfit_detail.html', context)

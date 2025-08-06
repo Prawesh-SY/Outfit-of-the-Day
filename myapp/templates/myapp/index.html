@@ -1,61 +1,55 @@
-{% extends "myapp/base.html" %}
-{% load static %}
-
-{% block title %}OOTD{% endblock %}
-
-{% block style %}
+{% extends "myapp/base.html" %} {% load static %} {% block title %}OOTD{% endblock %} {% block style %}
 <link rel="stylesheet" href="{% static 'myapp/css/combined.css' %}" />
-{% endblock %}
+{% endblock %} {% block content %}
 
-{% block content %}
-
-  <!-- Tools Section -->
-  <section class="tools-row">
-
-    <div class="tool-box">
-      <h3>Know Your Cup Size</h3>
-      <img src="{% static 'myapp/images/3.png' %}" alt="Cup Size Calculator">
-      <a href="{% url 'cup' %}" class="btn-link">Try Now!</a>
-
-    </div>
-  
-      <div class="tool-box">
-      <h3>Try Now</h3>
-      <img src="{% static 'myapp/images/outfit.png' %}" alt="Style Me Now">
-      <a href="{% url 'outfit' %}" class="btn-link">Style Me Now!</a>
-    </div>
-  
-    <div class="tool-box">
-      <h3>Know Your Body Type</h3>
-      <img src="{% static 'myapp/images/4.png' %}" alt="Body Type Calculator">
-      <a href= "{% url 'body' %}">
+<!-- Tools Section -->
+<section class="tools-row">
+  <div class="tool-box">
+    <h3>Know Your Cup Size</h3>
+    <img src="{% static 'myapp/images/3.png' %}" alt="Cup Size Calculator" />
+    <a href="{% url 'cup' %}">
       <button>Try Now!</button>
-      </a>
-    </div>
-  </section>
-  
-   <!-- Category Boxes -->
-  <section class="fit-categories">
+    </a>
+  </div>
+
+  <div class="tool-box">
+    <h3>Try Now</h3>
+    <img src="{% static 'myapp/images/outfit.png' %}" alt="Style Me Now" />
+    <a href="{% url 'outfit' %}">
+      <button>Style Me Now!</button>
+    </a>
+  </div>
+
+  <div class="tool-box">
+    <h3>Know Your Body Type</h3>
+    <img src="{% static 'myapp/images/4.png' %}" alt="Body Type Calculator" />
+    <a href="{% url 'body' %}">
+      <button>Try Now!</button>
+    </a>
+  </div>
+</section>
+
+<!-- Category Boxes -->
+<section class="fit-categories">
   {% for title in titles %}
-    <div class="fit-box" onclick="location.href='{% url 'title_detail' title.slug %}'" style="cursor:pointer">
-      {% if title.image %}
-        <img src="{{ title.image.url }}" alt="{{ title.name }}">
-      {% else %}
-        <img src="{% static 'myapp/images/placeholder.png' %}" alt="{{ title.name }}">
-      {% endif %}
-      <span>{{ title.name }}</span>
-    </div>
+  <div
+    class="fit-box"
+    onclick="location.href='{% url 'title_detail' title.slug %}'"
+    style="cursor: pointer"
+  >
+    {% if title.image %}
+    <img src="{{ title.image.url }}" alt="{{ title.name }}" />
+    {% else %}
+    <img
+      src="{% static 'myapp/images/placeholder.png' %}"
+      alt="{{ title.name }}"
+    />
+    {% endif %}
+    <span>{{ title.name }}</span>
+  </div>
   {% endfor %}
 </section>
 
-  
-  
-  
-  
-  <button id="backToTop" aria-label="Back to Top"></button>
+<button id="backToTop" aria-label="Back to Top"></button>
 
-  {% endblock %}
-
-  {% block jscript %}
-  
-  {% endblock %}
+{% endblock %} {% block jscript %} {% endblock %}

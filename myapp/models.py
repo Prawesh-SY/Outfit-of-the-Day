@@ -297,6 +297,8 @@ class OutfitImage(models.Model):
     def image_upload_path(instance, filename):
         return os.path.join('outfits', filename)
 
+    score = models.FloatField(default=5.0, null=False, help_text="User rating score for this outfit (default 5.0)")
+    vote_count = models.PositiveBigIntegerField(default=0, null=False, help_text="Number of votes for this outfit")
     image = models.ImageField(upload_to=image_upload_path)
     title = models.ForeignKey(Title, related_name='outfit_images', on_delete= models.PROTECT)
     description = models.TextField(blank=True)
@@ -317,6 +319,15 @@ class OutfitImage(models.Model):
 
     def __str__(self):
         return f"{self.title} ({self.style.name})"
+    
+    def update_score(self, user_score):
+        """
+        Update this outfit's score with a new user_score using a running average.
+        Example: (current_score * current_votes + new_score) / (current_votes + 1)
+        """
+        self.score = (self.score * self.vote_count + user_score) / (self.vote_count + 1)
+        self.vote_count += 1
+        self.save(update_fields=['score', 'vote_count'])
 
 class ClothingItem(models.Model):
     class Meta:
